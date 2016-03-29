@@ -1,0 +1,40 @@
+{
+  "name": "tman",
+  "version": "0.0.1",
+  "description": "Super test manager for JavaScript.",
+  "authors": [
+    "Yan Qing <admin@zensh.com>"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:thunks/tman.git"
+  },
+  "keywords": [
+    "test",
+    "infinite",
+    "thunk",
+    "task"
+  ],
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thunks/tman/issues"
+  },
+  "homepage": "https://github.com/thunks/tman",
+  "dependencies": {
+    "thunks": ">=4.1.0"
+  },
+  "devDependencies": {
+    "standard": "^6.0.7"
+  },
+  "files": [
+    "README.md",
+    "lib"
+  ]
+}
