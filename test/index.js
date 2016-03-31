@@ -4,7 +4,7 @@
 // **License:** MIT
 
 // const assert = require('assert')
-const tman = require('..')
+var tman = require('..')
 
 tman.before(function () {
   // console.log(1, 'before')
