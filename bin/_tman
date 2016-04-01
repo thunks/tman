@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+
+var fs = require('fs')
+var path = require('path')
+var glob = require('glob')
+var program = require('commander')
+
+var tman = require('..')
+var info = require('../package.json')
+
+// options
+program._name = 'tman'
+program
+  .version('v' + info.version)
+  .usage('[options] [files]')
+  .option('-r, --require <name>', 'require the given module')
+  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+  .option('--no-exit', 'require a clean shutdown of the event loop: T-man will not call process.exit')
+
+// -r, --require
+var requires = []
+program.on('require', function (name) {
+  var abs = exists(name) || exists(name + '.js')
+  if (abs) name = path.resolve(name)
+  requires.push(name)
+})
+
+// parse args
+program.parse(process.argv)
+
+// --timeout
+if (program.timeout && +program.timeout) {
+  tman.rootSuite.timeout(program.timeout)
+}
+
+// requires
+if (requires.length) {
+  module.paths.push(process.cwd(), path.join(process.cwd(), 'node_modules'))
+  requires.forEach(function (mod) { require(mod) })
+}
+
+// Files.
+var files = []
+var args = program.args
+// default files to `test/*.js`
+if (!args.length) args.push('test/*.js')
+args.forEach(function (arg) {
+  files.push.apply(files, glob.sync(arg))
+})
+
+// load tests
+;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
+  if (global[name]) throw new Error(name + ' exists in global')
+  global[name] = tman[name]
+})
+files.sort().forEach(function (filePath) {
+  require(path.resolve(filePath))
+})
+
+if (!tman.isRun()) tman.run(!program.exit && function (err) { if (err) throw err })
+process.on('SIGINT', function () { tman.rootSuite.abort = true })
+
+function exists (filePath) {
+  try {
+    return !!fs.statSync(filePath)
+  } catch (e) {}
+  return false
+}

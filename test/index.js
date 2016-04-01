@@ -85,7 +85,7 @@ tman.suite('test suite', function () {
         // console.log(3, 'it')
       })
 
-      tman.it('test it error', function () {
+      tman.it.skip('test it error', function () {
         throw new Error('test error 11111')
         // console.log(3, 'it')
       })

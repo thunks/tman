@@ -1,13 +1,17 @@
 {
   "name": "tman",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/index.js",
+  "bin": {
+    "tman": "./bin/tman",
+    "_tman": "./bin/_tman"
+  },
   "scripts": {
-    "test": "standard"
+    "test": "standard && node test/index"
   },
   "repository": {
     "type": "git",
@@ -28,6 +32,9 @@
   },
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
+    "commander": "^2.9.0",
+    "glob": "^7.0.3",
+    "supports-color": "^3.1.2",
     "thunks": ">=4.1.0"
   },
   "devDependencies": {
