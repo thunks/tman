@@ -35,13 +35,13 @@ Summary
   - [Run tests](#run-tests)
     - tman.run([callback])
     - tman CLI
+- [FAQ](#faq)
+- [License MIT](#license)
 
 ## Examples
 
 ### [Simple tests](https://github.com/thunks/tman/tree/master/example/simple.js)
-There are no suites, we define test cases in top level. You can run the test in two way:
-1. `node example/simple`, by node
-2. `tman example/simple`, by tman CLI
+It define test cases in top level, and no suites.
 
 ```js
 const assert = require('assert')
@@ -82,6 +82,18 @@ tman.it('generator style asynchronous test', function *() {
 })
 
 tman.run()
+```
+
+You can run the test in two way:
+
+By node
+```sh
+node example/simple
+```
+
+Or by tman CLI
+```sh
+tman example/simple
 ```
 
 ### [Mocha style tests](https://github.com/thunks/tman/tree/master/example/mocha.js)
@@ -140,7 +152,7 @@ describe('mocha style', function () {
 It include nested suites and tests, just simulate practical use case.
 
 ### [Complex tests](https://github.com/thunks/tman/tree/master/test/index.js)
-It is the test of `tman`, not only nested suites and tests, but also several `tman` instance!
+It is the test of `tman`, not only nested suites and tests, but also several `tman` instance compose!
 
 ## Usage
 
@@ -152,6 +164,16 @@ npm install paddington
 Then you can load the module into your code with a `require` call:
 ```js
 const tman = require('tman')
+// add suites and tests
+```
+
+Then you can run test in two way:
+```sh
+node test/index
+```
+Or
+```sh
+tman test/index
 ```
 
 ### Assertions
