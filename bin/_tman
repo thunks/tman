@@ -4,19 +4,39 @@ var fs = require('fs')
 var path = require('path')
 var glob = require('glob')
 var program = require('commander')
+var cwd = process.cwd()
 
-var tman = require('..')
-var info = require('../package.json')
+var tman = null
+
+// try load tman from local node_modules
+try {
+  tman = require(path.join(cwd, 'node_modules/tman'))
+} catch (e) {}
+
+if (!tman) {
+  // try load tman from local path
+  try {
+    tman = require(cwd)
+    if (tman.NAME !== 'tman' || typeof tman.run !== 'function') tman = null
+  } catch (e) {}
+}
+
+if (!tman) tman = require('..')
 
 // options
-program._name = 'tman'
+program._name = tman.NAME
 program
-  .version('v' + info.version)
+  .version('v' + tman.VERSION)
   .usage('[options] [files]')
   .option('-r, --require <name>', 'require the given module')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+  .option('-c, --color', 'force enabling of colors')
+  .option('-C, --no-color', 'force disabling of colors')
+  .option('-d, --debug', "enable node's debugger, synonym for node --debug")
+  .option('--no-timeout', 'disables timeouts, given implicitly with --debug')
   .option('--no-exit', 'require a clean shutdown of the event loop: T-man will not call process.exit')
 
+module.paths.push(cwd, path.join(cwd, 'node_modules'))
 // -r, --require
 var requires = []
 program.on('require', function (name) {
@@ -29,15 +49,14 @@ program.on('require', function (name) {
 program.parse(process.argv)
 
 // --timeout
-if (program.timeout && +program.timeout) {
-  tman.rootSuite.timeout(program.timeout)
+if (program.timeout === false) {
+  tman.rootSuite.no_timeout = true
+} else {
+  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 0)
 }
 
 // requires
-if (requires.length) {
-  module.paths.push(process.cwd(), path.join(process.cwd(), 'node_modules'))
-  requires.forEach(function (mod) { require(mod) })
-}
+requires.forEach(function (mod) { require(mod) })
 
 // files.
 var files = []

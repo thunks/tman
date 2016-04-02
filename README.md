@@ -158,7 +158,11 @@ It is the test of `tman`, not only nested suites and tests, but also several `tm
 
 T-man is easiest to use when installed with [npm][npm]:
 ```sh
-npm install paddington
+npm install tman
+```
+Or
+```sh
+npm install tman -g
 ```
 
 Then you can load the module into your code with a `require` call:
@@ -347,6 +351,10 @@ Usage: tman [options] [files]
     -V, --version         output the version number
     -r, --require <name>  require the given module
     -t, --timeout <ms>    set test-case timeout in milliseconds [2000]
+    -c, --color           force enabling of colors
+    -C, --no-color        force disabling of colors
+    -d, --debug           enable node\'s debugger, synonym for node --debug
+    --no-timeout          disables timeouts, given implicitly with --debug
     --no-exit             require a clean shutdown of the event loop: T-man will not call process.exit
 ```
 
