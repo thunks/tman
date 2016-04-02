@@ -45,7 +45,9 @@ var args = program.args
 // default files to `test/*.js`
 if (!args.length) args.push('test/*.js')
 args.forEach(function (arg) {
-  files.push.apply(files, glob.sync(arg))
+  var abs = exists(arg) || exists(arg + '.js')
+  if (abs) files.push(arg)
+  else files.push.apply(files, glob.sync(arg))
 })
 
 // register to global object

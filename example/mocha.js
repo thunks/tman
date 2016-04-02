@@ -5,19 +5,16 @@
 /*global describe, it, before, after*/
 
 const assert = require('assert')
-const thunk = require('thunks')()
 
 var count = 0
 
 describe('mocha style', function () {
   before(function () {
     assert.strictEqual(count++, 0)
-    console.log('Start simple tests')
   })
 
   after(function () {
     assert.strictEqual(count++, 9)
-    console.log('End simple tests')
   })
 
   it('synchronous test', function () {
@@ -47,7 +44,7 @@ describe('mocha style', function () {
 
   it('generator style asynchronous test', function *() {
     assert.strictEqual(count++, 7)
-    yield thunk.delay(100)
+    yield function (done) { setTimeout(done, 100) }
     assert.strictEqual(count++, 8)
   })
 })

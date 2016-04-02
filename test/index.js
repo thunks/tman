@@ -108,5 +108,3 @@ tman.suite('test suite', function () {
 tman.it('test it 2', function () {
   // console.log(1, 'it')
 })
-
-tman.run()
