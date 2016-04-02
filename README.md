@@ -129,7 +129,7 @@ It is the test of `tman`, not only nested suites and tests, but also several `tm
 ## API
 
 ```js
-tman = require('tman')
+const tman = require('tman')
 ```
 
 ### assertions
