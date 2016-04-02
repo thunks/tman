@@ -1,18 +1,17 @@
 {
   "name": "tman",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/index.js",
   "bin": {
-    "tman": "./bin/tman",
-    "_tman": "./bin/_tman"
+    "tman": "./bin/tman"
   },
   "scripts": {
-    "test": "standard && ./bin/tman",
-    "test-cov": "node node_modules/.bin/istanbul cover ./bin/_tman -- -t 20000"
+    "test": "standard && bin/tman",
+    "test-cov": "istanbul cover bin/tman -- -t 20000"
   },
   "repository": {
     "type": "git",
@@ -20,9 +19,20 @@
   },
   "keywords": [
     "test",
-    "infinite",
     "thunk",
-    "task"
+    "bdd",
+    "tdd",
+    "tap",
+    "runner",
+    "ava",
+    "fast",
+    "tape",
+    "tap",
+    "mocha",
+    "qunit",
+    "jasmine",
+    "cli-app",
+    "cli"
   ],
   "engines": {
     "node": ">= 0.10.0"

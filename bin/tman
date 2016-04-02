@@ -1,68 +1,90 @@
 #!/usr/bin/env node
 
-/**
- * from https://github.com/mochajs/mocha/blob/master/bin/mocha
- *
- * This tiny wrapper file checks for known node flags and appends them
- * when found, before invoking the "real" _tman(1) executable.
- */
-
+var fs = require('fs')
 var path = require('path')
-var spawn = require('child_process').spawn
-var args = [path.join(__dirname, '_tman')]
+var glob = require('glob')
+var program = require('commander')
+var cwd = process.cwd()
 
-process.argv.slice(2).forEach(function (arg) {
-  var flag = arg.split('=')[0]
+var tman = null
 
-  switch (flag) {
-    case '-d':
-      args.unshift('--debug')
-      args.push('--no-timeout')
-      break
-    case 'debug':
-    case '--debug':
-    case '--debug-brk':
-      args.unshift(arg)
-      args.push('--no-timeout')
-      break
-    case '-gc':
-    case '--expose-gc':
-      args.unshift('--expose-gc')
-      break
-    case '--gc-global':
-    case '--es_staging':
-    case '--no-deprecation':
-    case '--prof':
-    case '--log-timer-events':
-    case '--throw-deprecation':
-    case '--trace-deprecation':
-    case '--use_strict':
-    case '--allow-natives-syntax':
-    case '--perf-basic-prof':
-      args.unshift(arg)
-      break
-    default:
-      if (arg.indexOf('--harmony') === 0) args.unshift(arg)
-      else if (arg.indexOf('--trace') === 0) args.unshift(arg)
-      else if (arg.indexOf('--max-old-space-size') === 0) args.unshift(arg)
-      else args.push(arg)
-      break
-  }
+// try load tman from local node_modules
+try {
+  tman = require(path.join(cwd, 'node_modules/tman'))
+} catch (e) {}
+
+if (!tman) {
+  // try load tman from local path
+  try {
+    tman = require(cwd)
+    if (tman.NAME !== 'tman' || typeof tman.run !== 'function') tman = null
+  } catch (e) {}
+}
+
+if (!tman) tman = require('..')
+
+// options
+program._name = tman.NAME
+program
+  .version('v' + tman.VERSION)
+  .usage('[options] [files]')
+  .option('-r, --require <name>', 'require the given module')
+  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
+  .option('-c, --color', 'force enabling of colors')
+  .option('-C, --no-color', 'force disabling of colors')
+  .option('--no-timeout', 'disables timeouts, given implicitly with --debug')
+  .option('--no-exit', 'require a clean shutdown of the event loop: T-man will not call process.exit')
+
+module.paths.push(cwd, path.join(cwd, 'node_modules'))
+// -r, --require
+var requires = []
+program.on('require', function (name) {
+  var abs = exists(name) || exists(name + '.js')
+  if (abs) name = path.resolve(name)
+  requires.push(name)
 })
 
-var proc = spawn(process.execPath, args, {stdio: 'inherit'})
-proc.on('exit', function (code, signal) {
-  process.on('exit', function () {
-    if (signal) {
-      process.kill(process.pid, signal)
-    } else {
-      process.exit(code)
-    }
-  })
+// parse args
+program.parse(process.argv)
+
+// --timeout
+if (program.timeout === false) {
+  tman.rootSuite.no_timeout = true
+} else {
+  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 0)
+}
+
+// requires
+requires.forEach(function (mod) { require(mod) })
+
+// files.
+var files = []
+var args = program.args
+// default files to `test/*.js`
+if (!args.length) args.push('test/*.js')
+args.forEach(function (arg) {
+  var abs = exists(arg) || exists(arg + '.js')
+  if (abs) files.push(arg)
+  else files.push.apply(files, glob.sync(arg))
 })
 
-// terminate children.
-process.on('SIGINT', function () {
-  proc.kill('SIGINT') // calls runner.abort()
-  proc.kill('SIGTERM') // if that didn't work, we're probably in an infinite loop, so make it die.
+// register to global object
+;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
+  if (global[name]) throw new Error(name + ' exists on global object')
+  global[name] = tman[name]
 })
+
+// load tests
+files.sort().forEach(function (filePath) {
+  require(path.resolve(filePath))
+})
+
+if (!tman.isRun()) tman.run(!program.exit && function (err) { if (err) throw err })
+process.on('SIGINT', function () { tman.rootSuite.abort = true })
+
+function exists (filePath) {
+  try {
+    return !!fs.statSync(filePath)
+  } catch (e) {}
+  return false
+}

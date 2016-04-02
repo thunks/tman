@@ -353,7 +353,6 @@ Usage: tman [options] [files]
     -t, --timeout <ms>    set test-case timeout in milliseconds [2000]
     -c, --color           force enabling of colors
     -C, --no-color        force disabling of colors
-    -d, --debug           enable node\'s debugger, synonym for node --debug
     --no-timeout          disables timeouts, given implicitly with --debug
     --no-exit             require a clean shutdown of the event loop: T-man will not call process.exit
 ```
