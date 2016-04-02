@@ -9,6 +9,122 @@ T-man is a refactor version of [mocha](http://mochajs.org/), but more lightweigh
 
 ## Demo
 
+### [Simple tests](https://github.com/thunks/tman/tree/master/example/simple.js)
+There are no suites, we define test cases in top level. You can run the test in two way:
+1. `node example/simple`, by node
+2. `tman example/simple`, by tman CLI
+
+```js
+const assert = require('assert')
+const thunk = require('thunks')()
+const tman = require('tman')
+
+var count = 0
+
+tman.before(function () {
+  assert.strictEqual(count++, 0)
+  console.log('Start simple tests')
+})
+
+tman.after(function () {
+  assert.strictEqual(count++, 9)
+  console.log('End simple tests')
+})
+
+tman.it('synchronous test', function () {
+  assert.strictEqual(count++, 1)
+})
+
+tman.it('callback style asynchronous test', function (done) {
+  assert.strictEqual(count++, 2)
+  setTimeout(done, 100)
+})
+
+tman.it('promise style asynchronous test', function () {
+  assert.strictEqual(count++, 3)
+  return new Promise(function (resolve) {
+    assert.strictEqual(count++, 4)
+    setTimeout(resolve, 100)
+  })
+})
+
+tman.it('thunk style asynchronous test', function () {
+  assert.strictEqual(count++, 5)
+  return function (done) {
+    assert.strictEqual(count++, 6)
+    setTimeout(done, 100)
+  }
+})
+
+tman.it('generator style asynchronous test', function *() {
+  assert.strictEqual(count++, 7)
+  yield thunk.delay(100)
+  assert.strictEqual(count++, 8)
+})
+
+tman.run()
+```
+
+### [Mocha style tests](https://github.com/thunks/tman/tree/master/example/mocha.js)
+It is a mocha style tests. It only can be run by tman CLI: `tman example/mocha`.
+Through tman CLI, some method are registered to node global object.
+And you can use generator as well, it is equal to `mocha` + `thunk-mocha`.
+
+```js
+const assert = require('assert')
+const thunk = require('thunks')()
+
+var count = 0
+
+describe('mocha style', function () {
+  before(function () {
+    assert.strictEqual(count++, 0)
+    console.log('Start simple tests')
+  })
+
+  after(function () {
+    assert.strictEqual(count++, 9)
+    console.log('End simple tests')
+  })
+
+  it('synchronous test', function () {
+    assert.strictEqual(count++, 1)
+  })
+
+  it('callback style asynchronous test', function (done) {
+    assert.strictEqual(count++, 2)
+    setTimeout(done, 100)
+  })
+
+  it('promise style asynchronous test', function () {
+    assert.strictEqual(count++, 3)
+    return new Promise(function (resolve) {
+      assert.strictEqual(count++, 4)
+      setTimeout(resolve, 100)
+    })
+  })
+
+  it('thunk style asynchronous test', function () {
+    assert.strictEqual(count++, 5)
+    return function (done) {
+      assert.strictEqual(count++, 6)
+      setTimeout(done, 100)
+    }
+  })
+
+  it('generator style asynchronous test', function *() {
+    assert.strictEqual(count++, 7)
+    yield thunk.delay(100)
+    assert.strictEqual(count++, 8)
+  })
+})
+```
+
+### [Practical tests](https://github.com/thunks/tman/tree/master/example/nested.js)
+It include nested suites and tests, just simulate practical use case.
+
+### [Complex tests](https://github.com/thunks/tman/tree/master/test/index.js)
+It is the test of `tman`, not only nested suites and tests, but also several `tman` instance!
 
 ## API
 
@@ -43,36 +159,35 @@ tman.suite('User', function () {
 Define test logic, support synchronous or asynchronous test. `it` is an alias of `test`.
 
 ```js
-// synchronous test
-tman.it('test1', function () {
-  // do some test
+tman.it('synchronous test', function () {
+  // test body
 })
 
-// traditional callback style asynchronous test
-tman.it('test2', function (done) {
-  // do some test
-  done()
+tman.it('callback style asynchronous test', function (done) {
+  // test body
+  setTimeout(done, 100)
 })
 
-// generator asynchronous test
-tman.it('test3', function *() {
-  // do some test
-  // yield promise
-  // yield thunk
-  // yield generator
-  // ...
+tman.it('promise style asynchronous test', function () {
+  // test body
+  return new Promise(function (resolve) {
+    // test body
+    setTimeout(resolve, 100)
+  })
 })
 
-// promise asynchronous test
-tman.it('test4', function () {
-  // do some test
-  return promiseLikeObject
+tman.it('thunk style asynchronous test', function () {
+  // test body
+  return function (done) {
+    // test body
+    setTimeout(done, 100)
+  }
 })
 
-// thunk function asynchronous test
-tman.it('test5', function () {
-  // do some test
-  return thunkFunction
+tman.it('generator style asynchronous test', function *() {
+  // test body
+  yield thunk.delay(100)
+  // test body
 })
 ```
 

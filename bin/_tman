@@ -39,7 +39,7 @@ if (requires.length) {
   requires.forEach(function (mod) { require(mod) })
 }
 
-// Files.
+// files.
 var files = []
 var args = program.args
 // default files to `test/*.js`
@@ -48,11 +48,13 @@ args.forEach(function (arg) {
   files.push.apply(files, glob.sync(arg))
 })
 
-// load tests
+// register to global object
 ;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
-  if (global[name]) throw new Error(name + ' exists in global')
+  if (global[name]) throw new Error(name + ' exists on global object')
   global[name] = tman[name]
 })
+
+// load tests
 files.sort().forEach(function (filePath) {
   require(path.resolve(filePath))
 })
