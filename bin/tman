@@ -6,22 +6,8 @@ var glob = require('glob')
 var program = require('commander')
 var cwd = process.cwd()
 
-var tman = null
-
-// try load tman from local node_modules
-try {
-  tman = require(path.join(cwd, 'node_modules/tman'))
-} catch (e) {}
-
-if (!tman) {
-  // try load tman from local path
-  try {
-    tman = require(cwd)
-    if (tman.NAME !== 'tman' || typeof tman.run !== 'function') tman = null
-  } catch (e) {}
-}
-
-if (!tman) tman = require('..')
+// Prefer the local installation of T-man
+var tman = localTman(path.join(cwd, 'node_modules', 'tman')) || localTman(cwd) || require('..')
 
 // options
 program._name = tman.NAME
@@ -81,6 +67,14 @@ files.sort().forEach(function (filePath) {
 
 if (!tman.isRun()) tman.run(!program.exit && function (err) { if (err) throw err })
 process.on('SIGINT', function () { tman.rootSuite.abort = true })
+
+function localTman (dirname) {
+  var tmanId = path.sep + path.join('lib', 'tman.js')
+  var file = path.join(dirname, 'lib', 'tman.js')
+  if (file.slice(tmanId.length * -1) !== tmanId) return null
+  if (!exists(file) || !exists(path.join(dirname, 'bin', 'tman'))) return null
+  return require(file)
+}
 
 function exists (filePath) {
   try {

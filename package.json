@@ -1,11 +1,11 @@
 {
   "name": "tman",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
-  "main": "lib/index.js",
+  "main": "lib/tman.js",
   "bin": {
     "tman": "./bin/tman"
   },
