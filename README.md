@@ -19,21 +19,21 @@ Summary
 - [Usage](#usage)
   - [Assertions](#assertions)
   - [Suites and tests](#suites-and-tests)
-    - tman.suite(title, fn), tman.describe(title, fn)
-    - tman.test(title, fn), tman.it(title, fn)
+    - `tman.suite(title, fn)`, `tman.describe(title, fn)`
+    - `tman.test(title, fn)`, `tman.it(title, fn)`
   - [Hooks](#hooks)
-    - tman.before(fn)
-    - tman.after(fn)
-    - tman.beforeEach(fn)
-    - tman.afterEach(fn)
+    - `tman.before(fn)`
+    - `tman.after(fn)`
+    - `tman.beforeEach(fn)`
+    - `tman.afterEach(fn)`
   - [Exclusive or inclusive tests](#exclusive-or-inclusive-tests)
-    - tman.suite.only(title, fn)
-    - tman.it.only(title, fn)
-    - tman.suite.skip(title, fn)
-    - tman.it.skip(title, fn)
+    - `tman.suite.only(title, fn)`
+    - `tman.it.only(title, fn)`
+    - `tman.suite.skip(title, fn)`
+    - `tman.it.skip(title, fn)`
   - [Timeouts](#timeouts)
   - [Run tests](#run-tests)
-    - tman.run([callback])
+    - `tman.run([callback])`
     - tman CLI
 - [FAQ](#faq)
 - [License MIT](#license)

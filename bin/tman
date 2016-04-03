@@ -56,7 +56,7 @@ args.forEach(function (arg) {
 
 // register to global object
 ;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
-  if (global[name]) throw new Error(name + ' exists on global object')
+  if (global[name]) throw new Error('"' + name + '" exists on global object')
   global[name] = tman[name]
 })
 
