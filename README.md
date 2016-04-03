@@ -2,12 +2,12 @@ T-man
 ====
 Super test manager for JavaScript.
 
-T-man is a refactor version of [mocha](http://mochajs.org/), but more lightweight, more flexible. In most case, you can use tman replace of mocha directly.
-
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
 [![Coverage Status][coveralls-image]][coveralls-url]
 [![Downloads][downloads-image]][downloads-url]
+
+T-man is a refactor version of [mocha](http://mochajs.org/), but more lightweight, more flexible. In most case, you can use `tman` replace of `mocha` directly.
 
 Summary
 -------
@@ -17,6 +17,8 @@ Summary
   - [Practical tests](#practical-tests)
   - [Complex tests](#complex-tests)
 - [Usage](#usage)
+  - [Use as CLI](#use-as-cli)
+  - [Use with npm](#use-with-npm)
   - [Assertions](#assertions)
   - [Suites and tests](#suites-and-tests)
     - `tman.suite(title, fn)`, `tman.describe(title, fn)`
@@ -80,18 +82,9 @@ tman.it('generator style asynchronous test', function *() {
   yield new Promise(function (resolve) { setTimeout(resolve, 50) })
   assert.strictEqual(count++, 7)
 })
-
-tman.run()
 ```
 
-You can run the test in two way:
-
-By node
-```sh
-node example/simple
-```
-
-Or by tman CLI
+Run by tman CLI (need `npm i tman -g`):
 ```sh
 tman example/simple
 ```
@@ -156,28 +149,34 @@ It is the test of `tman`, not only nested suites and tests, but also several `tm
 
 ## Usage
 
-T-man is easiest to use when installed with [npm][npm]:
-```sh
-npm install tman
-```
-Or
+### Use as CLI
+T-man is easiest to use when installed with [npm](npmjs.org):
 ```sh
 npm install tman -g
 ```
+Run test in `myproject_dir`:
+```sh
+cd myproject_dir
+tman
+```
+Tman will try to load `myproject_dir/test/*.js` and run it.
 
-Then you can load the module into your code with a `require` call:
-```js
-const tman = require('tman')
-// add suites and tests
+### Use with npm
+npm script in `package.json`, with `istanbul`:
+```json
+"scripts": {
+  "test": "tman -t 10000",
+  "test-cov": "istanbul cover tman -- -t 10000"
+}
 ```
 
-Then you can run test in two way:
+Then run:
 ```sh
-node test/index
+npm test
 ```
-Or
+or
 ```sh
-tman test/index
+npm run test-cov
 ```
 
 ### Assertions

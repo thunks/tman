@@ -65,8 +65,9 @@ files.sort().forEach(function (filePath) {
   require(path.resolve(filePath))
 })
 
-if (!tman.isRun()) tman.run(!program.exit && function (err) { if (err) throw err })
+tman.rootSuite.exit = program.exit
 process.on('SIGINT', function () { tman.rootSuite.abort = true })
+if (!tman.isRun()) tman.run()
 
 function localTman (dirname) {
   var tmanId = path.sep + path.join('lib', 'tman.js')
