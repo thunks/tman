@@ -36,9 +36,12 @@ Summary
   - [Timeouts](#timeouts)
   - [Run tests](#run-tests)
     - `tman.run([callback])`
-    - tman CLI
+    - [T-man CLI](#t-man-cli)
 - [FAQ](#faq)
+  - [How to run CoffeeScript (or others) tests?](#how-to-run-coffeescript-or-others-tests)
+  - [Why not mocha, tape, tap, ava?](#why-not-mocha-tape-tap-ava)
 - [License MIT](#license)
+
 
 ## Examples
 
@@ -84,14 +87,14 @@ tman.it('generator style asynchronous test', function *() {
 })
 ```
 
-Run by tman CLI (need `npm i tman -g`):
+Run by T-man CLI (need `npm i tman -g`):
 ```sh
 tman example/simple
 ```
 
 ### [Mocha style tests](https://github.com/thunks/tman/tree/master/example/mocha.js)
-It is a mocha style tests. It only can be run by tman CLI: `tman example/mocha`.
-Through tman CLI, some method are registered to node global object.
+It is a mocha style tests. It only can be run by T-man CLI: `tman example/mocha`.
+Through T-man CLI, some method are registered to node global object.
 And you can use generator as well, it is equal to `mocha` + `thunk-mocha`.
 
 ```js
@@ -156,10 +159,9 @@ npm install tman -g
 ```
 Run test in `myproject_dir`:
 ```sh
-cd myproject_dir
-tman
+cd myproject_dir && tman
 ```
-Tman will try to load `myproject_dir/test/*.js` and run it.
+T-man will try to load `myproject_dir/test/*.js` and run it.
 
 ### Use with npm
 npm script in `package.json`, with `istanbul`:
@@ -340,7 +342,7 @@ tman.suite('User', function () {
 tman.run()
 ```
 
-#### tman CLI
+#### T-man CLI
 
 ```sh
 Usage: tman [options] [files]
@@ -358,6 +360,27 @@ Usage: tman [options] [files]
 
 ### FAQ
 
+### How to run CoffeeScript (or others) tests?
+
+Use `--require` option: `tman -r coffee-script/register test/index.coffee`. [Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
+
+### Why not `mocha`, `tape`, `tap`, `ava`?
+
+Here is [Why not `mocha`, `tape`, `tap`?](https://github.com/sindresorhus/ava#why-not-mocha-tape-tap)
+
+> Mocha requires you to use implicit globals like `describe` and `it` with the default interface (which most people use). It's not very opinionated and executes tests serially without process isolation, making it slow.
+
+> Tape and tap are pretty good. AVA is highly inspired by their syntax. They too execute tests serially. Their default [TAP](https://testanything.org) output isn't very user-friendly though so you always end up using an external tap reporter.
+
+> In contrast AVA is highly opinionated and runs tests concurrently, with a separate process for each test file. Its default reporter is easy on the eyes and yet AVA still supports TAP output through a CLI flag.
+
+**In my opinion:**
+
+1. `ava` don't have `suite` layer to organize huge scale tests.
+
+2. Strange API such as `t.plan(count)`, `t.end()`, `test.serial`.
+
+3. We don't need built-in assertions.
 
 ### License
 
