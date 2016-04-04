@@ -374,13 +374,15 @@ Here is [Why not `mocha`, `tape`, `tap`?](https://github.com/sindresorhus/ava#wh
 
 > In contrast AVA is highly opinionated and runs tests concurrently, with a separate process for each test file. Its default reporter is easy on the eyes and yet AVA still supports TAP output through a CLI flag.
 
-**In my opinion:**
+**My opinion on `ava`:**
 
 1. `ava` don't have `suite` layer to organize huge scale tests.
 
 2. Strange API such as `t.plan(count)`, `t.end()`, `test.serial`.
 
 3. We don't need built-in assertions.
+
+4. 300+ dependencies in production, how does it save my test time when CI?
 
 ### License
 
