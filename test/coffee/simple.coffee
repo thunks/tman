@@ -1,7 +1,7 @@
-# `bin/tman -r coffee-script/register example/simple.coffee`
+# `bin/tman -r coffee-script/register test/coffee`
 
 assert = require('assert')
-tman = require('..')
+tman = require('../..')
 
 count = 0
 

@@ -25,8 +25,8 @@ module.paths.push(cwd, path.join(cwd, 'node_modules'))
 // -r, --require
 var requires = []
 program.on('require', function (name) {
-  var abs = exists(name) || exists(name + '.js')
-  if (abs) name = path.resolve(name)
+  var stat = fsStat(name + '.js') || fsStat(name)
+  if (stat) name = path.resolve(name)
   requires.push(name)
 })
 
@@ -46,12 +46,16 @@ requires.forEach(function (mod) { require(mod) })
 // files.
 var files = []
 var args = program.args
-// default files to `test/*.js`
-if (!args.length) args.push('test/*.js')
+// default files to `test/*.*`
+if (!args.length) args.push('test')
 args.forEach(function (arg) {
-  var abs = exists(arg) || exists(arg + '.js')
-  if (abs) files.push(arg)
-  else files.push.apply(files, glob.sync(arg))
+  var filenames = glob.sync(arg)
+  if (!filenames.length) filenames.push(arg + '.js')
+  filenames.forEach(function (filename) {
+    var stat = fsStat(filename)
+    if (stat === 2) files.push.apply(files, glob.sync(path.join(filename, '*.*')))
+    else if (stat === 1) files.push(filename)
+  })
 })
 
 // register to global object
@@ -73,13 +77,17 @@ function localTman (dirname) {
   var tmanId = path.sep + path.join('lib', 'tman.js')
   var file = path.join(dirname, 'lib', 'tman.js')
   if (file.slice(tmanId.length * -1) !== tmanId) return null
-  if (!exists(file) || !exists(path.join(dirname, 'bin', 'tman'))) return null
+  if (fsStat(file) !== 1 || fsStat(path.join(dirname, 'bin', 'tman')) !== 1) return null
   return require(file)
 }
 
-function exists (filePath) {
+// 0: unknown, 1: file, 2: directory
+function fsStat (filePath) {
   try {
-    return !!fs.statSync(filePath)
+    var stat = fs.statSync(filePath)
+    if (stat.isFile()) return 1
+    else if (stat.isDirectory()) return 2
+    else return 0
   } catch (e) {}
-  return false
+  return 0
 }
