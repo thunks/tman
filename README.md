@@ -167,8 +167,8 @@ T-man will try to load `myproject_dir/test/*.js` and run it.
 npm script in `package.json`, with `istanbul`:
 ```json
 "scripts": {
-  "test": "tman -t 10000",
-  "test-cov": "istanbul cover tman -- -t 10000"
+  "test": "tman",
+  "test-cov": "istanbul cover tman"
 }
 ```
 

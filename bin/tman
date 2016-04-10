@@ -43,6 +43,15 @@ if (program.timeout === false) {
 // requires
 requires.forEach(function (mod) { require(mod) })
 
+// register to global object
+;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
+  if (global[name]) throw new Error('"' + name + '" exists on global object')
+  global[name] = tman[name]
+})
+if (!tman.TEST) tman.TEST = 'root'
+tman.rootSuite.exit = program.exit
+process.on('SIGINT', function () { tman.rootSuite.abort = true })
+
 // files.
 var files = []
 var args = program.args
@@ -58,20 +67,11 @@ args.forEach(function (arg) {
   })
 })
 
-// register to global object
-;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
-  if (global[name]) throw new Error('"' + name + '" exists on global object')
-  global[name] = tman[name]
-})
-
 // load tests
 files.sort().forEach(function (filePath) {
   require(path.resolve(filePath))
 })
-
-tman.rootSuite.exit = program.exit
-process.on('SIGINT', function () { tman.rootSuite.abort = true })
-if (!tman.isRun()) tman.run()
+tman.tryRun()
 
 function localTman (dirname) {
   var tmanId = path.sep + path.join('lib', 'tman.js')

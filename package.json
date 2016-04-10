@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -46,12 +46,12 @@
     "commander": "^2.9.0",
     "glob": "^7.0.3",
     "supports-color": "^3.1.2",
-    "thunks": "^4.1.4"
+    "thunks": "^4.1.5"
   },
   "devDependencies": {
     "coffee-script": "^1.10.0",
-    "istanbul": "^0.4.2",
-    "standard": "^6.0.7",
+    "istanbul": "^0.4.3",
+    "standard": "^6.0.8",
     "ts-node": "^0.7.1",
     "typescript": "^1.8.9"
   },
