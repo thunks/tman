@@ -55,20 +55,22 @@ process.on('SIGINT', function () { tman.rootSuite.abort = true })
 // files.
 var files = []
 var args = program.args
-// default files to `test/*.*`
-if (!args.length) args.push('test')
+// default files to `test/*.{js,ts,coffee}`
+if (!args.length) args.push(path.join('test', '*.{js,ts,coffee}'))
 args.forEach(function (arg) {
+  var result = []
   var filenames = glob.sync(arg)
   if (!filenames.length) filenames.push(arg + '.js')
   filenames.forEach(function (filename) {
     var stat = fsStat(filename)
-    if (stat === 2) files.push.apply(files, glob.sync(path.join(filename, '*.*')))
-    else if (stat === 1) files.push(filename)
+    if (stat === 2) result.push.apply(result, glob.sync(path.join(filename, '*.{js,ts,coffee}')))
+    else if (stat === 1) result.push(filename)
   })
+  files.push.apply(files, result.sort())
 })
 
 // load tests
-files.sort().forEach(function (filePath) {
+files.forEach(function (filePath) {
   require(path.resolve(filePath))
 })
 tman.tryRun()

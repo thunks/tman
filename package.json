@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "standard && bin/tman",
-    "test-cov": "istanbul cover bin/tman -- -t 20000"
+    "test-cov": "istanbul cover bin/tman"
   },
   "repository": {
     "type": "git",
@@ -46,14 +46,14 @@
     "commander": "^2.9.0",
     "glob": "^7.0.3",
     "supports-color": "^3.1.2",
-    "thunks": "^4.1.5"
+    "thunks": "^4.1.6"
   },
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.3",
     "standard": "^6.0.8",
-    "ts-node": "^0.7.1",
-    "typescript": "^1.8.9"
+    "ts-node": "^0.7.2",
+    "typescript": "^1.8.10"
   },
   "files": [
     "README.md",
