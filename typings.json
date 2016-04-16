@@ -1,0 +1,8 @@
+{
+  "ambientDevDependencies": {
+    "node": "registry:dt/node#4.0.0+20160412142033"
+  },
+  "devDependencies": {
+    "thunks": "npm:thunks/thunks.d.ts"
+  }
+}

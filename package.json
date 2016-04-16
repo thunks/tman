@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -11,6 +11,7 @@
   },
   "scripts": {
     "test": "standard && bin/tman",
+    "test-all": "make test",
     "test-cov": "istanbul cover bin/tman"
   },
   "repository": {
@@ -58,6 +59,7 @@
   "files": [
     "README.md",
     "bin",
-    "lib"
+    "lib",
+    "tman.d.ts"
   ]
 }

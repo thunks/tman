@@ -362,7 +362,11 @@ Usage: tman [options] [files]
 
 ### How to run CoffeeScript (or others) tests?
 
-Use `--require` option: `tman -r coffee-script/register test/index.coffee`. [Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
+Use `--require` option:
+1. `tman -r coffee-script/register test/*.coffee`
+2. `tman -r ts-node/register test/*.ts`
+
+[Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
 
 ### Why not `mocha`, `tape`, `tap`, `ava`?
 

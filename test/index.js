@@ -23,7 +23,7 @@ tman.suite('Suites and tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     // log for new instance
     t.rootSuite.log = childLog(this)
 
@@ -62,7 +62,7 @@ tman.suite('Suites and tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     // log for new instance
     t.rootSuite.log = childLog(this)
 
@@ -159,7 +159,7 @@ tman.suite('Suites and tests', function () {
   })
 
   tman.it('invalid suite and test', function () {
-    var t = tman.tman()
+    var t = tman.createTman()
 
     assert.throws(function () {
       t.suite(function () {})
@@ -196,7 +196,7 @@ tman.suite('Hooks', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     // log for new instance
     t.rootSuite.log = childLog(this)
 
@@ -242,7 +242,7 @@ tman.suite('Hooks', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     // log for new instance
     t.rootSuite.log = childLog(this)
 
@@ -303,7 +303,7 @@ tman.suite('Hooks', function () {
   })
 
   tman.it('invalid hooks', function () {
-    var t = tman.tman()
+    var t = tman.createTman()
 
     assert.throws(function () {
       t.before('test')
@@ -345,7 +345,7 @@ tman.suite('Hooks', function () {
   tman.it('work with ES2015', function () {
     var ctx = this
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     // log for new instance
     t.rootSuite.log = childLog(this)
     t.before(function () {

@@ -7,5 +7,6 @@ test:
 	node test/cli/test-in-src --test=root
 	TEST=root node test/cli/test-in-src
 	bin/tman -r coffee-script/register test/coffee
+	bin/tman -r ts-node/register test/ts
 
 .PHONY: test

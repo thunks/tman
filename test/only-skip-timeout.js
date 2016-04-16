@@ -15,7 +15,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
@@ -87,7 +87,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
@@ -136,7 +136,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
@@ -196,7 +196,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
@@ -264,7 +264,7 @@ tman.suite('Timeouts and errors', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
@@ -339,7 +339,7 @@ tman.suite('Timeouts and errors', function () {
     var ctx = this
     var count = 0
     // new child instance for test
-    var t = tman.tman()
+    var t = tman.createTman()
     var messages = []
     // log for new instance
     t.rootSuite.log = function () {
