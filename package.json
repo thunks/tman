@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -12,7 +12,8 @@
   "scripts": {
     "test": "standard && bin/tman",
     "test-all": "make test",
-    "test-cov": "istanbul cover bin/tman"
+    "test-cov": "istanbul cover bin/tman",
+    "browser": "browserify lib/browser.js -s tman -o browser/tman.js"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,12 @@
     "README.md",
     "bin",
     "lib",
+    "browser",
     "tman.d.ts"
-  ]
+  ],
+  "standard": {
+    "ignore": [
+      "browser"
+    ]
+  }
 }

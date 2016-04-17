@@ -1,0 +1,53 @@
+#tman {
+  width: 96%;
+  max-width: 1024px;
+  margin: 20px auto 0;
+  line-height: 28px;
+}
+
+#tman .tman-header {
+  text-align: center;
+}
+
+#tman .tman-suite h3 {
+  margin: 0;
+  font-size: 1.1em;
+  border-bottom: 1px solid #D0D0D0;
+}
+
+#tman .tman-test {}
+
+#tman .tman-footer {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 2px solid #9E9E9E;
+}
+
+#tman .tman-statistics {
+  font-size: 1.2em;
+  margin-top: 10px;
+}
+
+#tman .tman-statistics span {
+  padding-right: 12px;
+}
+
+#tman .tman-error h4 {
+  margin: 0;
+}
+
+#tman .tman-error p {
+  margin: 0;
+}
+
+#tman .success {
+  color: #009688;
+}
+
+#tman .error {
+  color: #E91E63;
+}
+
+#tman .ignored {
+  color: #03A9F4;
+}
