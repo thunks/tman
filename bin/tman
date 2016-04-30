@@ -48,7 +48,7 @@ requires.forEach(function (mod) { require(mod) })
   if (global[name]) throw new Error('"' + name + '" exists on global object')
   global[name] = tman[name]
 })
-if (!tman.TEST) tman.TEST = 'root'
+if (!tman.env.TEST) tman.env.TEST = 'root'
 tman.rootSuite.exit = program.exit
 process.on('SIGINT', function () { tman.rootSuite.abort = true })
 
