@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
