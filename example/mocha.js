@@ -42,7 +42,7 @@ describe('mocha style', function () {
     }
   })
 
-  it('generator style asynchronous test', function *() {
+  it('generator style asynchronous test', function * () {
     assert.strictEqual(count++, 7)
     yield function (done) { setTimeout(done, 100) }
     assert.strictEqual(count++, 8)

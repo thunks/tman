@@ -9,11 +9,11 @@
 const thunk = require('thunks')()
 
 suite('no timeout', function () {
-  it('test 1100 should ok', function *() {
+  it('test 1100 should ok', function * () {
     yield thunk.delay(1100)
   })
 
-  it('test 2100 should ok', function *() {
+  it('test 2100 should ok', function * () {
     yield thunk.delay(2100)
   })
 

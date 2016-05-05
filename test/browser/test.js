@@ -28,7 +28,7 @@ tman.after(function () {
 })
 
 tman.suite('suite level 1-1', function () {
-  tman.beforeEach(function *() {
+  tman.beforeEach(function * () {
     count++
     yield delay(10)
   })
@@ -42,12 +42,12 @@ tman.suite('suite level 1-1', function () {
   })
 
   tman.suite('suite level 2-1', function () {
-    tman.beforeEach(function *() {
+    tman.beforeEach(function * () {
       count++
       yield delay(20)
     })
 
-    tman.it('test level 3-1', function *() {
+    tman.it('test level 3-1', function * () {
       assert.strictEqual(count++, 7)
       yield delay(100)
     })
@@ -58,12 +58,12 @@ tman.suite('suite level 1-1', function () {
   })
 
   tman.suite('suite level 2-2', function () {
-    tman.afterEach(function *() {
+    tman.afterEach(function * () {
       count++
       yield delay(20)
     })
 
-    tman.it('test level 3-1', function *() {
+    tman.it('test level 3-1', function * () {
       assert.strictEqual(count++, 11)
       yield delay(100)
     })
@@ -73,11 +73,11 @@ tman.suite('suite level 1-1', function () {
     })
 
     tman.suite.skip('suite level 3-1', function () {
-      tman.afterEach(function *() {
+      tman.afterEach(function * () {
         assert.strictEqual('skip', false)
       })
 
-      tman.it('test level 4-1', function *() {
+      tman.it('test level 4-1', function * () {
         assert.strictEqual('skip', false)
       })
 
@@ -95,7 +95,7 @@ tman.suite('suite level 1-1', function () {
         assert.strictEqual(count++, 20)
       })
 
-      tman.it('test level 4-1', function *() {
+      tman.it('test level 4-1', function * () {
         assert.strictEqual(count++, 17)
         yield delay(100)
       })
@@ -115,7 +115,7 @@ tman.suite('suite level 1-1', function () {
   })
 })
 
-tman.it('test level 1-1', function *() {
+tman.it('test level 1-1', function * () {
   assert.strictEqual(count++, 22)
   yield delay(100)
 })

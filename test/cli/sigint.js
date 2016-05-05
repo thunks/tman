@@ -18,7 +18,7 @@ suite('Should finish graceful when "SIGINT"', function () {
   })
 
   while (count++ < 1000) {
-    it('test ' + count, function *() {
+    it('test ' + count, function * () {
       yield thunk.delay(200)
       i++
     })

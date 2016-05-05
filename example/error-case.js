@@ -20,7 +20,7 @@ tman.after(function () {
 })
 
 tman.suite('error suite 1', function () {
-  tman.beforeEach(function *() {
+  tman.beforeEach(function * () {
     count++
     yield thunk.delay(10)
   })
@@ -42,13 +42,13 @@ tman.suite('error suite 1', function () {
   })
 
   tman.suite('error suite 2', function () {
-    tman.it('assert error', function *() {
+    tman.it('assert error', function * () {
       assert.strictEqual(true, false)
       yield thunk.delay(100)
     })
 
     tman.suite('error suite 3', function () {
-      tman.it('assert error', function *() {
+      tman.it('assert error', function * () {
         yield thunk.delay(100)
         assert.strictEqual(true, false)
       })
@@ -57,7 +57,7 @@ tman.suite('error suite 1', function () {
         throw new Error('throw error')
       })
 
-      tman.it('time out error', function *() {
+      tman.it('time out error', function * () {
         this.timeout(100)
         yield thunk.delay(1000)
       })

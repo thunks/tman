@@ -16,7 +16,7 @@ module.exports = function (t) {
     })
   })
 
-  t.it('generator style asynchronous test', function *() {
+  t.it('generator style asynchronous test', function * () {
     assert.strictEqual(count++, 2)
     yield function (done) {
       assert.strictEqual(count++, 3)
@@ -39,7 +39,7 @@ module.exports = function (t) {
   t.it('generator style asynchronous test, return generator function', function () {
     assert.strictEqual(count++, 9)
 
-    return function *() {
+    return function * () {
       assert.strictEqual(count++, 10)
       yield function (done) {
         assert.strictEqual(count++, 11)

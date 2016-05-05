@@ -53,7 +53,7 @@
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.3",
-    "standard": "^6.0.8",
+    "standard": "^7.0.1",
     "ts-node": "^0.7.2",
     "typescript": "^1.8.10"
   },

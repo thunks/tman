@@ -33,7 +33,7 @@ tman.it('thunk style asynchronous test', function () {
   }
 })
 
-tman.it('generator style asynchronous test', function *() {
+tman.it('generator style asynchronous test', function * () {
   assert.strictEqual(count++, 6)
   yield function (done) { setTimeout(done, 50) }
   yield new Promise(function (resolve) { setTimeout(resolve, 50) })

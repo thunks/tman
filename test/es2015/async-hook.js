@@ -8,7 +8,7 @@ const thunk = require('thunks')()
 
 module.exports = function (t) {
   var count = 0
-  t.after(function *() {
+  t.after(function * () {
     assert.strictEqual(count++, 6)
     yield function (done) {
       assert.strictEqual(count++, 7)
@@ -28,7 +28,7 @@ module.exports = function (t) {
     assert.strictEqual(count++, 12)
   })
 
-  t.beforeEach(function *() {
+  t.beforeEach(function * () {
     yield thunk.delay(10)
     count++
   })

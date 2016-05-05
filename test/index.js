@@ -11,7 +11,7 @@ var format = tman.format
 var supportES2015 = false
 
 try { // 检测是否支持 generator，是则加载 generator 测试
-  supportES2015 = new Function('return function*(){}') // eslint-disable-line
+  supportES2015 = new Function('return function* (){}') // eslint-disable-line
 } catch (e) {}
 
 tman.afterEach(function () {
