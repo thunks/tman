@@ -73,4 +73,4 @@ tman.it('throw error', function () {
   throw new Error('throw error')
 })
 
-tman.run()
+// tman.run()

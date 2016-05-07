@@ -120,4 +120,4 @@ tman.it('test level 1-3', function () {
   assert.strictEqual(count++, 24)
 })
 
-tman.run()
+// tman.run()

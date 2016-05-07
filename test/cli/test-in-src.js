@@ -4,8 +4,8 @@
 // **License:** MIT
 
 // `bin/tman test/cli/test-in-src`
-// `TEST='root' node test/cli/test-in-src`
-// `node test/cli/test-in-src --test=root`
+// `TEST=* node test/cli/test-in-src`
+// `node test/cli/test-in-src --test`
 
 const assert = require('assert')
 const thunk = require('thunks')()

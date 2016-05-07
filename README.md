@@ -14,6 +14,7 @@ Summary
 - [Examples](#examples)
   - [Simple tests](#simple-tests)
   - [Mocha style tests](#mocha-style-tests)
+  - [Tests in source code](#tests-in-source-code)
   - [Practical tests](#practical-tests)
   - [Complex tests](#complex-tests)
 - [Usage](#usage)
@@ -34,14 +35,15 @@ Summary
     - `tman.suite.skip(title, fn)`
     - `tman.it.skip(title, fn)`
   - [Timeouts](#timeouts)
+  - [Write tests in source code](#write-tests-in-source-code)
   - [Run tests](#run-tests)
     - `tman.run([callback])`
     - [T-man CLI](#t-man-cli)
+    - [T-man Test mode](#t-man-test-mode)
 - [FAQ](#faq)
-  - [How to run CoffeeScript (or others) tests?](#how-to-run-coffeescript-or-others-tests)
+  - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
   - [Why not mocha, tape, tap, ava?](#why-not-mocha-tape-tap-ava)
 - [License MIT](#license)
-
 
 ## Examples
 
@@ -50,7 +52,7 @@ It define test cases in top level, and no suites.
 
 ```js
 const assert = require('assert')
-const tman = require('..')
+const tman = require('tman')
 
 var count = 0
 
@@ -144,8 +146,11 @@ describe('mocha style', function () {
 })
 ```
 
+### [Tests in source code](https://github.com/thunks/tman/tree/master/example/tests-in-source-code.js)
+It shows writing tests in source code. The tests will run in [test mode](#t-man-test-mode).
+
 ### [Practical tests](https://github.com/thunks/tman/tree/master/example/nested.js)
-It include nested suites and tests, just simulate practical use case.
+It includes nested suites and tests, just simulate practical use case.
 
 ### [Complex tests](https://github.com/thunks/tman/tree/master/test/index.js)
 It is the test of `tman`, not only nested suites and tests, but also several `tman` instance compose!
@@ -164,7 +169,7 @@ cd myproject_dir && tman
 T-man will try to load `myproject_dir/test/*.js` and run it.
 
 ### Use with npm
-npm script in `package.json`, with `istanbul`:
+npm script in `package.json`(, also with `istanbul`):
 ```json
 "scripts": {
   "test": "tman",
@@ -180,6 +185,11 @@ or
 ```sh
 npm run test-cov
 ```
+
+explicit
+
+The `tman` will try to load tests with glob `test/*.js` and run them.
+You may also run tests with your own globs: `tman test/index.js test/service/*.js test/api/*.js`.
 
 ### Assertions
 T-man has no built-in assertion method, but allows you to use any assertion library you want, if it throws an error, it will work! You can utilize libraries such as:
@@ -324,12 +334,40 @@ tman.it('should take less than 500ms', function (done) {
 });
 ```
 
+### Write tests in source code
+
+#### tman(title, fn)
+#### tman.only(title, fn)
+#### tman.skip(title, fn)
+You can write tests in your source code:
+
+```js
+exports.stringify = function (val) {
+  return val == null ? '' : String(val)
+}
+
+tman('test in source code', function () {
+  const assert = require('assert')
+
+  tman.it('stringify', function () {
+    assert.strictEqual(exports.stringify(), '')
+    assert.strictEqual(exports.stringify(null), '')
+    assert.strictEqual(exports.stringify(0), '0')
+    assert.strictEqual(exports.stringify(false), 'false')
+    assert.strictEqual(exports.stringify(NaN), 'NaN')
+  })
+})
+```
+
+The tests will only run in `test mode`.
+
 ### Run tests
 
 #### tman.run([callback])
 You can run the tests programmatically:
 
 ```js
+// Run: `node example.js`
 tman.suite('User', function () {
   tman.suite('#save()', function () {
     tman.it('should save without error', function *() {
@@ -341,6 +379,8 @@ tman.suite('User', function () {
 
 tman.run()
 ```
+
+**If you run tests with CLI, you will not need to use `tman.run`,** the `tman` command will run tests automatically.
 
 #### T-man CLI
 
@@ -358,18 +398,24 @@ Usage: tman [options] [files]
     --no-exit             require a clean shutdown of the event loop: T-man will not call process.exit
 ```
 
+#### T-man test mode
+There are 3 ways to run with `test mode`:
+
+1. `tman example/test_in_source_code.js`
+2. `node example/test_in_source_code.js --test`
+3. `TEST=* node example/test_in_source_code.js`
+
 ### FAQ
 
-### How to run CoffeeScript (or others) tests?
-
+### How to run CoffeeScript (or TypeScript) tests?
 Use `--require` option:
+
 1. `tman -r coffee-script/register test/*.coffee`
 2. `tman -r ts-node/register test/*.ts`
 
 [Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
 
 ### Why not `mocha`, `tape`, `tap`, `ava`?
-
 Here is [Why not `mocha`, `tape`, `tap`?](https://github.com/sindresorhus/ava#why-not-mocha-tape-tap)
 
 > Mocha requires you to use implicit globals like `describe` and `it` with the default interface (which most people use). It's not very opinionated and executes tests serially without process isolation, making it slow.
@@ -381,15 +427,11 @@ Here is [Why not `mocha`, `tape`, `tap`?](https://github.com/sindresorhus/ava#wh
 **My opinion on `ava`:**
 
 1. `ava` don't have `suite` layer to organize huge scale tests.
-
 2. Strange API such as `t.plan(count)`, `t.end()`, `test.serial`.
-
 3. We don't need built-in assertions.
-
 4. 300+ dependencies in production, how does it save my test time when CI?
 
 ### License
-
 T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.  
 Copyright &copy; 2016 thunks.
 
