@@ -36,6 +36,9 @@ Summary
     - `tman.it.skip(title, fn)`
   - [Timeouts](#timeouts)
   - [Write tests in source code](#write-tests-in-source-code)
+    - `tman(title, fn)`
+    - `tman.only(title, fn)`
+    - `tman.skip(title, fn)`
   - [Run tests](#run-tests)
     - `tman.run([callback])`
     - [T-man CLI](#t-man-cli)
@@ -81,7 +84,7 @@ tman.it('thunk style asynchronous test', function () {
   }
 })
 
-tman.it('generator style asynchronous test', function *() {
+tman.it('generator style asynchronous test', function * () {
   assert.strictEqual(count++, 6)
   yield function (done) { setTimeout(done, 50) }
   yield new Promise(function (resolve) { setTimeout(resolve, 50) })
@@ -138,7 +141,7 @@ describe('mocha style', function () {
     }
   })
 
-  it('generator style asynchronous test', function *() {
+  it('generator style asynchronous test', function * () {
     assert.strictEqual(count++, 7)
     yield function (done) { setTimeout(done, 100) }
     assert.strictEqual(count++, 8)
@@ -158,7 +161,7 @@ It is the test of `tman`, not only nested suites and tests, but also several `tm
 ## Usage
 
 ### Use as CLI
-T-man is easiest to use when installed with [npm](npmjs.org):
+T-man is easiest to use when installed with [npm](https://www.npmjs.com/package/tman):
 ```sh
 npm install tman -g
 ```
@@ -168,7 +171,7 @@ cd myproject_dir && tman
 ```
 T-man will try to load `myproject_dir/test/*.js` and run it.
 
-### Use with npm
+### Use with npm package.json
 npm script in `package.json`(, also with `istanbul`):
 ```json
 "scripts": {
@@ -186,9 +189,8 @@ or
 npm run test-cov
 ```
 
-explicit
-
 The `tman` will try to load tests with glob `test/*.js` and run them.
+
 You may also run tests with your own globs: `tman test/index.js test/service/*.js test/api/*.js`.
 
 ### Assertions
@@ -207,7 +209,7 @@ You may use `suite` to organize huge scale tests. `describe` is an alias of `sui
 ```js
 tman.suite('User', function () {
   tman.suite('#save()', function () {
-    tman.it('should save without error', function *() {
+    tman.it('should save without error', function * () {
       yield new User('Tman').save()
     })
   })
@@ -243,7 +245,7 @@ tman.it('thunk style asynchronous test', function () {
   }
 })
 
-tman.it('generator style asynchronous test', function *() {
+tman.it('generator style asynchronous test', function * () {
   // test body
   yield thunk.delay(100)
   // test body
@@ -370,7 +372,7 @@ You can run the tests programmatically:
 // Run: `node example.js`
 tman.suite('User', function () {
   tman.suite('#save()', function () {
-    tman.it('should save without error', function *() {
+    tman.it('should save without error', function * () {
       yield new User('Tman').save()
     })
   })
