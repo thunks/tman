@@ -37,17 +37,18 @@ program.parse(process.argv)
 if (program.timeout === false) {
   tman.rootSuite.no_timeout = true
 } else {
-  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 0)
+  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 2000)
 }
 
 // requires
 requires.forEach(function (mod) { require(mod) })
 
 // register to global object
-;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach', 'tman'].forEach(function (name) {
+;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach'].forEach(function (name) {
   if (global[name]) throw new Error('"' + name + '" exists on global object')
   global[name] = tman[name]
 })
+global.tman = tman
 if (!tman.env.TEST) tman.env.TEST = 'root'
 tman.rootSuite.exit = program.exit
 process.on('SIGINT', function () { tman.rootSuite.abort = true })

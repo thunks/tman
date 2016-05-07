@@ -1,5 +1,8 @@
 test:
+	tman
 	bin/tman
+	tman test/cli/global
+	bin/tman test/cli/global
 	bin/tman --no-timeout test/cli/no-timeout
 	bin/tman -r test/cli/require-a test/cli/require-b
 	!(bin/tman -t 650 test/cli/timeout)

@@ -280,7 +280,7 @@ tman.suite('Timeouts and errors', function () {
     })
 
     t.after(function () {
-      assert.strictEqual(count++, 5)
+      assert.strictEqual(count++, 6)
     })
 
     t.it('test 1-1', function (done) {
@@ -307,11 +307,17 @@ tman.suite('Timeouts and errors', function () {
         assert.strictEqual(count++, 4)
         setTimeout(done, 100)
       })
+
+      t.it('test 2-2, no-timeout', function (done) {
+        this.timeout(0)
+        assert.strictEqual(count++, 5)
+        setTimeout(done, 100)
+      })
     })
 
     return t.run(function (err, res) {
       if (err) throw err
-      assert.strictEqual(res.passed, 2)
+      assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 0)
 
       messages = messages.join('')
