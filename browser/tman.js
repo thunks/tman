@@ -150,7 +150,7 @@ function Suite (title, parent, mode) {
 
   this.mode = mode
   this.ctxMachine = this
-  this.duration = 0
+  this.duration = -1
   this.startTime = 0
   this.endTime = 0
   this.before = null
@@ -273,13 +273,13 @@ Suite.prototype.setOnlyMode = function () {
 }
 
 Suite.prototype.timeout = function (duration) {
+  if (!(duration >= 0)) throw new Error('invalid timeout: ' + String(duration))
   this.duration = duration
 }
 
 Suite.prototype.getDuration = function () {
-  if (this.duration) return this.duration
+  if (this.duration >= 0) return this.duration
   if (this.parent) return this.parent.getDuration()
-  return 2000
 }
 
 Suite.prototype.fullTitle = function () {
@@ -330,7 +330,7 @@ function Test (title, parent, fn, mode) {
 
   this.depth = parent.depth + 1
   this.mode = mode
-  this.duration = 0
+  this.duration = -1
   this.startTime = 0
   this.endTime = 0
   this.timer = null
@@ -368,11 +368,12 @@ Test.prototype.toJSON = function () {
 }
 
 Test.prototype.timeout = function (duration) {
+  if (!(duration >= 0)) throw new Error('invalid timeout: ' + String(duration))
   this.duration = duration
 }
 
 Test.prototype.getDuration = function () {
-  return this.duration ? this.duration : this.parent.getDuration()
+  return this.duration >= 0 ? this.duration : this.parent.getDuration()
 }
 
 Test.prototype.fullTitle = function () {
@@ -457,6 +458,7 @@ exports.Tman = function (env) {
   rootSuite.passed = 0
   rootSuite.ignored = 0
   rootSuite.errors = []
+  rootSuite.timeout(2000)
 
   function tman (fn) {
     if (!env.TEST) return
@@ -939,7 +941,7 @@ exports.Tman = function (env) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.1.7'
+  thunks.VERSION = '4.1.8'
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
   thunks.strictMode = true
@@ -950,8 +952,8 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "0.9.0",
-  "description": "Super test manager for JavaScript.",
+  "version": "0.9.2",
+  "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
@@ -970,7 +972,10 @@ module.exports={
     "url": "git@github.com:thunks/tman.git"
   },
   "keywords": [
+    "T-man",
+    "tman",
     "test",
+    "manager",
     "thunk",
     "bdd",
     "tdd",
@@ -1003,7 +1008,7 @@ module.exports={
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.3",
-    "standard": "^6.0.8",
+    "standard": "^7.0.1",
     "ts-node": "^0.7.2",
     "typescript": "^1.8.10"
   },
