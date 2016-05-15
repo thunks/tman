@@ -41,8 +41,11 @@ interface TestFn {
 
 interface Tman {
   (suite: SuiteAction): void;
+  (title: string, suite: SuiteAction): void;
   only(suite: SuiteAction): void;
   skip(suite: SuiteAction): void;
+  only(title: string, fn: SuiteAction): void;
+  skip(title: string, fn: SuiteAction): void;
   suite: SuiteFn;
   describe: SuiteFn;
   test: TestFn;
