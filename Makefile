@@ -11,6 +11,8 @@ test:
 	TEST=* node test/cli/test-in-src
 	bin/tman -r coffee-script/register test/coffee
 	bin/tman -r ts-node/register test/ts
+	open test/browser/index-error.html
+	sleep 2s
 	open test/browser/index.html
 
 .PHONY: test

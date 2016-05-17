@@ -53,6 +53,15 @@ core.Suite.prototype.onStart = function () {
   this.parent.el.appendChild(this.el)
 }
 
+// default suite reporter (finish event)
+core.Suite.prototype.onFinish = function () {
+  if (this.state instanceof Error) {
+    this.el.setAttribute('class', 'tman-test error')
+    var el = createEl('span', 'more-info', indent(this.depth + 1) + this.state.title + ' ✗ (' + this.state.order + ')')
+    this.el.appendChild(el)
+  }
+}
+
 // default test reporter (start event)
 core.Test.prototype.onStart = function () {
   this.el = createEl('div', 'tman-test', indent(this.depth) + this.title)
@@ -158,6 +167,7 @@ function Suite (title, parent, mode) {
   this.beforeEach = null
   this.afterEach = null
   this.depth = parent ? (parent.depth + 1) : 0
+  this.state = null // skip: null, passed: true, failed: error
   this.children = []
 }
 
@@ -301,25 +311,29 @@ Suite.prototype.toThunk = function () {
   }
 
   var tasks = []
+  if (this.before) tasks.push(thunkFn(this.before, this, ' "before" hook'))
   this.children.forEach(function (test) {
-    if (ctx.beforeEach) tasks.push(thunkFn(ctx.beforeEach, ctx))
+    if (ctx.beforeEach) tasks.push(thunkFn(ctx.beforeEach, ctx, ' "beforeEach" hook'))
     tasks.push(test.toThunk())
-    if (ctx.afterEach) tasks.push(thunkFn(ctx.afterEach, ctx))
+    if (ctx.afterEach) tasks.push(thunkFn(ctx.afterEach, ctx, ' "afterEach" hook'))
   })
+  if (this.after) tasks.push(thunkFn(this.after, this, ' "after" hook'))
 
-  if (this.before) tasks.unshift(thunkFn(this.before, this))
-  if (this.after) tasks.push(thunkFn(this.after, this))
-  tasks.unshift(function (done) {
+  return thunk(function (done) {
     ctx.onStart()
     ctx.startTime = Date.now()
-    done()
+    thunk.seq(tasks)(function (err) {
+      if (err == null) ctx.state = true
+      else {
+        ctx.state = err
+        ctx.root.errors.push(err)
+        err.order = ctx.root.errors.length
+        err.title = ctx.fullTitle() + (err.title || '')
+      }
+      ctx.endTime = Date.now()
+      ctx.onFinish()
+    })(done)
   })
-  tasks.push(function (done) {
-    ctx.endTime = Date.now()
-    ctx.onFinish()
-    done()
-  })
-  return thunk.seq(tasks)
 }
 
 function Test (title, parent, fn, mode) {
@@ -442,16 +456,24 @@ function assertStr (str, ctx) {
   }
 }
 
-function thunkFn (fn, ctx) {
+function thunkFn (fn, ctx, title) {
   return function (done) {
-    thunk.call(ctx, fn.length ? fn : fn.call(ctx))(done)
+    thunk()(function () {
+      return fn.length ? fn : fn.call(ctx)
+    })(function (err) {
+      if (err != null) {
+        err.title = title
+        throw err
+      }
+    })(done)
   }
 }
 
 exports.Suite = Suite
 exports.Test = Test
 exports.Tman = function (env) {
-  var rootSuite = tman.rootSuite = new Suite('root', null, '')
+  var tm = _tman('')
+  var rootSuite = tm.rootSuite = new Suite('root', null, '')
   rootSuite.no_timeout = false
   rootSuite.exit = true
   rootSuite.abort = false
@@ -460,68 +482,66 @@ exports.Tman = function (env) {
   rootSuite.errors = []
   rootSuite.timeout(2000)
 
-  function tman (fn) {
-    if (!env.TEST) return
-    rootSuite.pushSuite('T-man', fn, '')
-    tman.tryRun(1000)
-  }
-  tman.only = function (fn) {
-    if (!env.TEST) return
-    rootSuite.pushSuite('T-man', fn, 'only')
-    tman.tryRun(1000)
-  }
-  tman.skip = function (fn) {
-    if (!env.TEST) return
-    rootSuite.pushSuite('T-man', fn, 'skip')
-    tman.tryRun(1000)
+  tm.only = _tman('only')
+  tm.skip = _tman('skip')
+  function _tman (mode) {
+    return function tman (title, fn) {
+      if (!env.TEST) return
+      if (typeof title === 'function') {
+        fn = title
+        title = 'T-man'
+      }
+      rootSuite.pushSuite(title, fn, mode)
+      tm.tryRun(10)
+    }
   }
 
-  tman.describe = tman.suite = function (title, fn) {
+  tm.describe = tm.suite = function (title, fn) {
     rootSuite.pushSuite(title, fn, '')
   }
-  tman.suite.only = function (title, fn) {
+  tm.suite.only = function (title, fn) {
     rootSuite.pushSuite(title, fn, 'only')
   }
-  tman.suite.skip = function (title, fn) {
+  tm.suite.skip = function (title, fn) {
     rootSuite.pushSuite(title, fn, 'skip')
   }
 
-  tman.it = tman.test = function (title, fn) {
+  tm.it = tm.test = function (title, fn) {
     rootSuite.pushTest(title, fn, '')
   }
-  tman.test.only = function (title, fn) {
+  tm.test.only = function (title, fn) {
     rootSuite.pushTest(title, fn, 'only')
   }
-  tman.test.skip = function (title, fn) {
+  tm.test.skip = function (title, fn) {
     rootSuite.pushTest(title, fn, 'skip')
   }
 
-  tman.before = function (fn) {
+  tm.before = function (fn) {
     rootSuite.pushBefore(fn)
   }
 
-  tman.after = function (fn) {
+  tm.after = function (fn) {
     rootSuite.pushAfter(fn)
   }
 
-  tman.beforeEach = function (fn) {
+  tm.beforeEach = function (fn) {
     rootSuite.pushBeforeEach(fn)
   }
 
-  tman.afterEach = function (fn) {
+  tm.afterEach = function (fn) {
     rootSuite.pushAfterEach(fn)
   }
 
   var timer = null
   var running = false
-  tman.tryRun = function (delay) {
+  tm.tryRun = function (delay) {
     if (timer) clearTimeout(timer)
     timer = setTimeout(function () {
-      if (!running) tman.run()
+      if (!running) tm.run()
     }, delay > 0 ? +delay : 1)
   }
 
-  tman.run = function (callback) {
+  tm.run = function (callback) {
     /* istanbul ignore next */
     if (running) throw new Error('T-man is running!')
 
@@ -530,9 +550,9 @@ exports.Tman = function (env) {
     rootSuite.passed = 0
     rootSuite.ignored = 0
     rootSuite.errors = []
-    if (tman._beforeRun) tman._beforeRun()
+    if (tm._beforeRun) tm._beforeRun()
 
-    return thunk.delay.call(tman)(function () {
+    return thunk.delay.call(tm)(function () {
       return rootSuite
     })(function (err) {
       if (err) throw err
@@ -542,10 +562,10 @@ exports.Tman = function (env) {
       result.errors = rootSuite.errors.slice()
 
       return result
-    })(callback || tman._afterRun)
+    })(callback || tm._afterRun)
   }
 
-  return tman
+  return tm
 }
 
 },{"path":5,"thunks":3}],3:[function(require,module,exports){
@@ -952,7 +972,7 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1003,13 +1023,13 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.3",
     "supports-color": "^3.1.2",
-    "thunks": "^4.1.7"
+    "thunks": "^4.1.8"
   },
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.3",
     "standard": "^7.0.1",
-    "ts-node": "^0.7.2",
+    "ts-node": "^0.7.3",
     "typescript": "^1.8.10"
   },
   "files": [
