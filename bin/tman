@@ -11,10 +11,9 @@ var packageInfo = require('../package.json')
 var tman = localTman(path.join(cwd, 'node_modules', 'tman')) || localTman(cwd) || require('..')
 
 if (packageInfo.version !== tman.VERSION) {
-  console.warn(tman.format.red('Warning: T-man version mismatch:', true))
-  console.warn(tman.format.red('  Global T-man is v' + packageInfo.version, true))
-  console.warn(tman.format.red('  Local T-man is v' + tman.VERSION, true))
-  console.warn(tman.format.red('\nPlease run "npm i -g tman" to update.\n', true))
+  console.warn(tman.format.red('\nWarning: T-man version mismatch:', true))
+  console.warn(tman.format.red('  Global: v' + packageInfo.version + ', update: npm i -g tman', true))
+  console.warn(tman.format.red('  Local: v' + tman.VERSION + ', update: npm i tman@latest\n', true))
 }
 
 // options
