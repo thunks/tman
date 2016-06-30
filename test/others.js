@@ -257,6 +257,76 @@ tman.suite('Exclusive or inclusive tests', function () {
       tman.rootSuite.passed += res.passed
     })
   })
+
+  tman.it('"only" in "skip" mode should not take effect', function () {
+    var ctx = this
+    var count = 0
+    // new child instance for test
+    var t = tman.createTman()
+    var messages = []
+    // log for new instance
+    t.rootSuite.log = function () {
+      var args = slice.call(arguments)
+      messages = messages.concat(args)
+      args[0] = format.indent(ctx.depth) + args[0]
+      tman.rootSuite.log.apply(null, args)
+    }
+
+    t.before(function () {
+      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      assert.strictEqual(count++, 0)
+    })
+
+    t.after(function () {
+      assert.strictEqual(count++, 4)
+    })
+
+    t.it('test 1-1', function () {
+      assert.strictEqual(count++, 1)
+    })
+
+    t.it('test 1-2', function () {
+      assert.strictEqual(count++, 2)
+    })
+
+    t.suite.skip('suite 1-1', function () {
+      t.it.only('test 2-1', function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.suite.only('suite 2-1', function () {
+        t.it('test 3-1', function () {
+          assert.strictEqual(true, false)
+        })
+
+        t.it('test 3-2', function () {
+          assert.strictEqual(true, false)
+        })
+      })
+    })
+
+    t.it('test 1-3', function () {
+      assert.strictEqual(count++, 3)
+    })
+
+    return t.run(function (err, res) {
+      if (err) throw err
+      assert.strictEqual(res.passed, 3)
+      assert.strictEqual(res.ignored, 3)
+
+      messages = messages.join('')
+      assert.ok(messages.indexOf('test 1-1') > 0)
+      assert.ok(messages.indexOf('test 1-2') > 0)
+      assert.ok(messages.indexOf('suite 1-1') > 0)
+      assert.ok(messages.indexOf('test 2-1') > 0)
+      assert.ok(messages.indexOf('suite 2-1') > 0)
+      assert.ok(messages.indexOf('test 3-1') > 0)
+      assert.ok(messages.indexOf('test 3-2') > 0)
+      assert.ok(messages.indexOf('test 1-3') > 0)
+
+      tman.rootSuite.passed += res.passed
+    })
+  })
 })
 
 tman.suite('Timeouts and errors', function () {

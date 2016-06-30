@@ -60,10 +60,10 @@ if (!tman.env.TEST) tman.env.TEST = 'root'
 tman.rootSuite.exit = program.exit
 process.on('SIGINT', function () {
   tman.rootSuite.abort = true
-  // force to exit in 4 seconds.
+  // force to exit in 3 seconds.
   setTimeout(function () {
-    process.exit(0)
-  }, 4000)
+    process.abort()
+  }, 3000)
 })
 
 // files.

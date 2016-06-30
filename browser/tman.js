@@ -218,7 +218,7 @@ Suite.prototype.pushSuite = function (title, fn, mode) {
   this.ctxMachine = suite
   fn.call(suite)
   this.ctxMachine = ctx
-  if (mode === 'only') suite.setOnlyMode()
+  if (mode === 'only' && !ctx.isSkipMode()) suite.setOnlyMode()
 }
 
 Suite.prototype.pushTest = function (title, fn, mode) {
@@ -228,7 +228,7 @@ Suite.prototype.pushTest = function (title, fn, mode) {
   // stop reading if 'only' mode
   if (ctx.isOnlyMode()) return
   var test = new Test(title, ctx, fn, mode)
-  if (mode === 'only') {
+  if (mode === 'only' && !ctx.isSkipMode()) {
     ctx.children.length = 0
     ctx.setOnlyMode()
   }
@@ -267,6 +267,11 @@ Suite.prototype.isOnlyMode = function () {
   return this.root.mode === 'only'
 }
 
+Suite.prototype.isSkipMode = function () {
+  if (this.mode === 'skip') return true
+  return this.parent ? this.parent.isSkipMode() : false
+}
+
 // only one 'only' mode is allowed
 // will stop reading the rest
 Suite.prototype.setOnlyMode = function () {
@@ -298,29 +303,29 @@ Suite.prototype.fullTitle = function () {
 
 Suite.prototype.toThunk = function () {
   var ctx = this
-  if (this.mode === 'skip') {
-    return function (done) {
-      ctx.onStart()
-      thunk.seq(ctx.children.map(function (test) {
+
+  return function (done) {
+    /* istanbul ignore next */
+    if (ctx.root.abort) return done()
+    ctx.onStart()
+    if (ctx.mode === 'skip') {
+      return thunk.seq(ctx.children.map(function (test) {
         test.mode = 'skip'
-        return test.toThunk()
+        return test
       }))(function () {
         ctx.onFinish()
       })(done)
     }
-  }
 
-  var tasks = []
-  if (this.before) tasks.push(thunkFn(this.before, this, ' "before" hook'))
-  this.children.forEach(function (test) {
-    if (ctx.beforeEach) tasks.push(thunkFn(ctx.beforeEach, ctx, ' "beforeEach" hook'))
-    tasks.push(test.toThunk())
-    if (ctx.afterEach) tasks.push(thunkFn(ctx.afterEach, ctx, ' "afterEach" hook'))
-  })
-  if (this.after) tasks.push(thunkFn(this.after, this, ' "after" hook'))
+    var tasks = []
+    if (ctx.before) tasks.push(thunkFn(ctx.before, ctx, ' "before" hook'))
+    ctx.children.forEach(function (test) {
+      if (ctx.beforeEach) tasks.push(thunkFn(ctx.beforeEach, ctx, ' "beforeEach" hook'))
+      tasks.push(test)
+      if (ctx.afterEach) tasks.push(thunkFn(ctx.afterEach, ctx, ' "afterEach" hook'))
+    })
+    if (ctx.after) tasks.push(thunkFn(ctx.after, ctx, ' "after" hook'))
 
-  return thunk(function (done) {
-    ctx.onStart()
     ctx.startTime = Date.now()
     thunk.seq(tasks)(function (err) {
       if (err == null) ctx.state = true
@@ -333,7 +338,7 @@ Suite.prototype.toThunk = function () {
       ctx.endTime = Date.now()
       ctx.onFinish()
     })(done)
-  })
+  }
 }
 
 function Test (title, parent, fn, mode) {
@@ -400,7 +405,6 @@ Test.prototype.toThunk = function () {
     /* istanbul ignore next */
     if (ctx.root.abort) return done()
     ctx.onStart()
-
     if (ctx.mode === 'skip') {
       ctx.root.ignored++
       ctx.onFinish()
@@ -615,7 +619,8 @@ exports.Tman = function (env) {
     }
 
     function thunk (thunkable) {
-      return childThunk(new Link([null, thunkable], null), new Domain(this === thunk ? null : this))
+      return childThunk(new Link([null, thunkable], null),
+                        new Domain(this === thunk ? null : this))
     }
 
     thunk.all = function (obj) {
@@ -624,17 +629,19 @@ exports.Tman = function (env) {
     }
 
     thunk.seq = function (array) {
-      if (arguments.length !== 1 || !isArray(array)) array = slice(arguments)
+      if (arguments.length > 1) array = slice(arguments)
       return thunk.call(this, sequenceToThunk(array))
     }
 
     thunk.race = function (array) {
       if (arguments.length > 1) array = slice(arguments)
       return thunk.call(this, function (done) {
+        if (!Array.isArray(array)) throw new TypeError(String(array) + ' is not array')
+        if (!array.length) return thunk.call(this)(done)
         for (var i = 0, l = array.length; i < l; i++) thunk.call(this, array[i])(done)
       })
     }
-
+    // DEPRECATED, we don't need it.
     thunk.digest = function () {
       var args = slice(arguments)
       return thunk.call(this, function (callback) {
@@ -656,7 +663,8 @@ exports.Tman = function (env) {
     thunk.lift = function (fn) {
       var ctx = this === thunk ? null : this
       return function () {
-        return thunk.call(ctx || this, objectToThunk(slice(arguments), false))(function (err, res) {
+        var thunkable = objectToThunk(slice(arguments), false)
+        return thunk.call(ctx || this, thunkable)(function (err, res) {
           if (err != null) throw err
           return apply(this, fn, res)
         })
@@ -670,11 +678,11 @@ exports.Tman = function (env) {
     }
 
     thunk.stop = function (message) {
-      var sig = new SigStop(message)
+      var signal = new SigStop(message)
       nextTick(function () {
-        return scope.onstop && scope.onstop.call(null, sig)
+        return scope.onstop && scope.onstop.call(null, signal)
       })
-      throw sig
+      throw signal
     }
 
     thunk.persist = function (thunkable) {
@@ -729,7 +737,9 @@ exports.Tman = function (env) {
 
   function child (parent, domain, callback) {
     if (parent.callback) throw new Error('The thunk already filled')
-    if (callback && !isFunction(callback)) throw new TypeError(String(callback) + ' is not a function')
+    if (callback && !isFunction(callback)) {
+      throw new TypeError(String(callback) + ' is not a function')
+    }
     parent.callback = callback || noOp
     if (parent.result) continuation(parent, domain)
     return childThunk(parent.next, domain)
@@ -763,7 +773,6 @@ exports.Tman = function (env) {
       }
 
       current.result = tryRun(domain.ctx, parent.callback, args)
-
       if (current.callback) {
         tickDepth = tickDepth || maxTickDepth
         if (--tickDepth) return continuation(current, domain, tickDepth)
@@ -881,6 +890,7 @@ exports.Tman = function (env) {
 
   function sequenceToThunk (array) {
     return function (callback) {
+      if (!Array.isArray(array)) throw new TypeError(String(array) + ' is not array')
       var i = 0
       var ctx = this
       var end = array.length - 1
@@ -953,18 +963,16 @@ exports.Tman = function (env) {
 
   function pruneErrorStack (error) {
     if (thunks.pruneErrorStack && error.stack) {
-      error.stack = error.stack
-        .replace(/^\s*at.*thunks\.js.*$/gm, '')
-        .replace(/\n+/g, '\n')
+      error.stack = error.stack.replace(/^\s*at.*thunks\.js.*$/gm, '').replace(/\n+/g, '\n')
     }
     return error
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.1.8'
+  thunks.VERSION = '4.2.1'
+  thunks.strictMode = true
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
-  thunks.strictMode = true
   return thunks
 }))
 
@@ -972,7 +980,7 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1021,15 +1029,15 @@ module.exports={
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
     "commander": "^2.9.0",
-    "glob": "^7.0.3",
+    "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.1.8"
+    "thunks": "^4.2.2"
   },
   "devDependencies": {
     "coffee-script": "^1.10.0",
-    "istanbul": "^0.4.3",
-    "standard": "^7.0.1",
-    "ts-node": "^0.7.3",
+    "istanbul": "^0.4.4",
+    "standard": "^7.1.2",
+    "ts-node": "^0.9.3",
     "typescript": "^1.8.10"
   },
   "files": [
