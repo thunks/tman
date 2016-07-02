@@ -14,6 +14,7 @@ Summary
 - [Examples](#examples)
   - [Simple tests](#simple-tests)
   - [Mocha style tests](#mocha-style-tests)
+  - [Es-next tests with babel](#es-next-tests-with-babel)
   - [Tests in source code](#tests-in-source-code)
   - [Practical tests](#practical-tests)
   - [Complex tests](#complex-tests)
@@ -146,6 +147,39 @@ describe('mocha style', function () {
     yield function (done) { setTimeout(done, 100) }
     assert.strictEqual(count++, 8)
   })
+})
+```
+
+### [Es-next tests with babel](https://github.com/thunks/tman/tree/master/example/es-next.es)
+`tman -r babel-register -r babel-polyfill example/es-next.es`:
+```js
+import assert from 'assert'
+import tman from 'tman'
+
+var count = 0
+// async "after hook"
+tman.after(async () => {
+  assert.strictEqual(await Promise.resolve(count++), 4)
+})
+
+tman.it('async/await asynchronous test', async function () {
+  assert.strictEqual(await Promise.resolve(count++), 0)
+  assert.strictEqual(await new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(count++)
+    }, 100)
+  }), 1)
+})
+
+tman.it('generator asynchronous test', function * () {
+  // yield Promise
+  assert.strictEqual(yield Promise.resolve(count++), 2)
+  // yield thunk function
+  assert.strictEqual(yield (done) => {
+    setTimeout(() => {
+      done(null, count++)
+    }, 100)
+  }, 3)
 })
 ```
 
