@@ -25,6 +25,7 @@ program
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
   .option('-c, --color', 'force enabling of colors')
   .option('-C, --no-color', 'force disabling of colors')
+  .option('--no-sort', 'don\'t sort test files')
   .option('--no-timeout', 'disables timeouts, given implicitly with --debug')
   .option('--no-exit', 'require a clean shutdown of the event loop: T-man will not call process.exit')
 
@@ -73,21 +74,38 @@ var args = program.args
 if (!args.length) args.push(path.join('test', '*.{js,ts,coffee}'))
 args.forEach(function (arg) {
   var result = []
+  if (fsStat(arg) === 1) {
+    files.push(arg)
+    return
+  }
   var filenames = glob.sync(arg)
   if (!filenames.length) filenames.push(arg + '.js')
   filenames.forEach(function (filename) {
     var stat = fsStat(filename)
-    if (stat === 2) result.push.apply(result, glob.sync(path.join(filename, '*.{js,ts,coffee}')))
-    else if (stat === 1) result.push(filename)
+    if (stat === 1) result.push(filename)
+    else if (stat === 2) {
+      result.push.apply(result, glob.sync(path.join(filename, '*.{js,ts,coffee}')))
+    }
   })
-  files.push.apply(files, result.sort())
+  files.push.apply(files, result)
 })
 
+sortFiles(files)
 // load tests
 files.forEach(function (filePath) {
   require(path.resolve(filePath))
 })
 tman.tryRun()
+
+function sortFiles (list) {
+  if (program.sort !== false) {
+    list.sort(function (a, b) {
+      return (a.split(path.sep).length - b.split(path.sep).length) ||
+        Number(a > b) || -Number(a < b)
+    })
+  }
+  return list
+}
 
 function localTman (dirname) {
   var tmanId = path.sep + path.join('lib', 'tman.js')

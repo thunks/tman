@@ -462,8 +462,8 @@ function assertStr (str, ctx) {
 
 function thunkFn (fn, ctx, title) {
   return function (done) {
-    thunk()(function () {
-      return fn.length ? fn : fn.call(ctx)
+    thunk.call(ctx)(function () {
+      return fn.length ? fn : fn.call(this)
     })(function (err) {
       if (err != null) {
         err.title = title
@@ -612,7 +612,8 @@ exports.Tman = function (env) {
     }
 
   function thunks (options) {
-    var scope = Domain.prototype.scope = new Scope(options)
+    var scope = options instanceof Scope ? options : new Scope(options)
+    Domain.prototype.scope = scope
 
     function Domain (ctx) {
       this.ctx = ctx
@@ -680,7 +681,7 @@ exports.Tman = function (env) {
     thunk.stop = function (message) {
       var signal = new SigStop(message)
       nextTick(function () {
-        return scope.onstop && scope.onstop.call(null, signal)
+        return scope.onstop && scope.onstop(signal)
       })
       throw signal
     }
@@ -707,7 +708,6 @@ exports.Tman = function (env) {
   }
 
   function Scope (options) {
-    this.onerror = this.onstop = this.debug = null
     if (isFunction(options)) this.onerror = options
     else if (options) {
       if (isFunction(options.onerror)) this.onerror = options.onerror
@@ -715,6 +715,9 @@ exports.Tman = function (env) {
       if (isFunction(options.debug)) this.debug = options.debug
     }
   }
+  Scope.prototype.onerror = null
+  Scope.prototype.onstop = null
+  Scope.prototype.debug = null
 
   function Link (result, callback) {
     this.next = null
@@ -754,14 +757,14 @@ exports.Tman = function (env) {
     function callback (err) {
       if (parent.result === null) return
       parent.result = null
-      if (scope.debug) apply(null, scope.debug, arguments)
+      if (scope.debug) apply(scope, scope.debug, arguments)
 
       var args = [err]
       if (err != null) {
         pruneErrorStack(err)
         if (err instanceof SigStop) return
         if (scope.onerror) {
-          if (scope.onerror.call(null, err) !== true) return
+          if (scope.onerror(err) !== true) return
           // if onerror return true then continue
           args[0] = null
         }
@@ -783,7 +786,7 @@ exports.Tman = function (env) {
       if (current.result[0] != null) {
         nextTick(function () {
           if (!current.result) return
-          if (scope.onerror) return scope.onerror.call(null, current.result[0])
+          if (scope.onerror) return scope.onerror(current.result[0])
           /* istanbul ignore next */
           noOp(current.result[0])
         })
@@ -797,6 +800,7 @@ exports.Tman = function (env) {
     if (!isFunction(thunk)) return thunk === undef ? callback(null) : callback(null, thunk)
     if (isGeneratorFunction(thunk)) thunk = generatorToThunk(thunk.call(ctx))
     else if (thunk.length !== 1) {
+      /* istanbul ignore next */
       if (!thunks.strictMode) return callback(null, thunk)
       err = new Error('Not thunk function: ' + thunk)
       err.fn = thunk
@@ -952,9 +956,10 @@ exports.Tman = function (env) {
     return fn.constructor.name === 'GeneratorFunction'
   }
 
+  /* istanbul ignore next */
   function noOp (error) {
     if (error == null) return
-    /* istanbul ignore next */
+    error = pruneErrorStack(error)
     nextTick(function () {
       if (isFunction(thunks.onerror)) thunks.onerror(error)
       else throw error
@@ -969,10 +974,11 @@ exports.Tman = function (env) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.2.1'
+  thunks.VERSION = '4.3.0'
   thunks.strictMode = true
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
+  thunks.Scope = Scope
   return thunks
 }))
 
@@ -980,7 +986,7 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1031,13 +1037,17 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.2.2"
+    "thunks": "^4.3.0"
   },
   "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-polyfill": "^6.9.1",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-register": "^6.9.0",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.4",
     "standard": "^7.1.2",
-    "ts-node": "^0.9.3",
+    "ts-node": "^1.0.0",
     "typescript": "^1.8.10"
   },
   "files": [
