@@ -14,5 +14,7 @@ test:
 	open test/browser/index-error.html
 	sleep 2s
 	open test/browser/index.html
+	sleep 2s
+	open test/browser/index-async.html -a '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
 
 .PHONY: test

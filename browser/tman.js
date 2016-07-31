@@ -414,7 +414,7 @@ Test.prototype.toThunk = function () {
     ctx.startTime = Date.now()
     thunk.race([
       function (callback) {
-        thunk.call(ctx, ctx.fn.length ? ctx.fn : ctx.fn())(callback)
+        thunk.call(ctx, thunks.isThunkableFn(ctx.fn) ? ctx.fn : ctx.fn())(callback)
       },
       function (callback) {
         thunk.delay()(function () {
@@ -463,7 +463,7 @@ function assertStr (str, ctx) {
 function thunkFn (fn, ctx, title) {
   return function (done) {
     thunk.call(ctx)(function () {
-      return fn.length ? fn : fn.call(this)
+      return thunks.isThunkableFn(fn) ? fn : fn.call(this)
     })(function (err) {
       if (err != null) {
         err.title = title
@@ -798,7 +798,8 @@ exports.Tman = function (env) {
     var err
     var thunk = toThunk(value, thunkObj)
     if (!isFunction(thunk)) return thunk === undef ? callback(null) : callback(null, thunk)
-    if (isGeneratorFunction(thunk)) thunk = generatorToThunk(thunk.call(ctx))
+    if (isGeneratorFn(thunk)) thunk = generatorToThunk(thunk.call(ctx))
+    else if (isAsyncFn(thunk)) thunk = promiseToThunk(thunk.call(ctx))
     else if (thunk.length !== 1) {
       /* istanbul ignore next */
       if (!thunks.strictMode) return callback(null, thunk)
@@ -919,7 +920,10 @@ exports.Tman = function (env) {
     return function (callback) {
       return promise.then(function (res) {
         callback(null, res)
-      }, callback)
+      }, function (err) {
+        if (err == null) err = new Error('unknown error: ' + err)
+        callback(err)
+      })
     }
   }
 
@@ -949,11 +953,15 @@ exports.Tman = function (env) {
   }
 
   function isGenerator (obj) {
-    return isFunction(obj.next) && isFunction(obj.throw)
+    return obj.constructor && isGeneratorFn(obj.constructor)
   }
 
-  function isGeneratorFunction (fn) {
-    return fn.constructor.name === 'GeneratorFunction'
+  function isGeneratorFn (fn) {
+    return fn.constructor && fn.constructor.name === 'GeneratorFunction'
+  }
+
+  function isAsyncFn (fn) {
+    return fn.constructor && fn.constructor.name === 'AsyncFunction'
   }
 
   /* istanbul ignore next */
@@ -974,11 +982,20 @@ exports.Tman = function (env) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.3.0'
+  thunks.VERSION = '4.4.2'
   thunks.strictMode = true
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
   thunks.Scope = Scope
+  thunks.isGeneratorFn = function (fn) {
+    return isFunction(fn) && isGeneratorFn(fn)
+  }
+  thunks.isAsyncFn = function (fn) {
+    return isFunction(fn) && isAsyncFn(fn)
+  }
+  thunks.isThunkableFn = function (fn) {
+    return isFunction(fn) && (fn.length === 1 || isAsyncFn(fn) || isGeneratorFn(fn))
+  }
   return thunks
 }))
 
@@ -986,7 +1003,7 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1037,17 +1054,17 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.3.0"
+    "thunks": "^4.4.2"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
     "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
-    "babel-register": "^6.9.0",
+    "babel-register": "^6.11.6",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.4",
     "standard": "^7.1.2",
-    "ts-node": "^1.0.0",
+    "ts-node": "^1.2.2",
     "typescript": "^1.8.10"
   },
   "files": [
