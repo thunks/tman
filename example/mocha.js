@@ -4,6 +4,8 @@
 // **License:** MIT
 /*global describe, it, before, after*/
 
+// `tman example/mocha.js`
+
 const assert = require('assert')
 
 var count = 0

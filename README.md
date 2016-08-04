@@ -57,6 +57,7 @@ It define test cases in top level, and no suites.
 ```js
 const assert = require('assert')
 const tman = require('tman')
+const Rx = require('rxjs')
 
 var count = 0
 
@@ -90,6 +91,14 @@ tman.it('generator style asynchronous test', function * () {
   yield function (done) { setTimeout(done, 50) }
   yield new Promise(function (resolve) { setTimeout(resolve, 50) })
   assert.strictEqual(count++, 7)
+})
+
+tman.it('Rx.Observable asynchronous test', function () {
+  assert.strictEqual(count++, 8)
+  return Rx.Observable.fromPromise(new Promise(function (resolve) {
+    assert.strictEqual(count++, 9)
+    setTimeout(resolve, 100)
+  }))
 })
 ```
 

@@ -1,3 +1,7 @@
+# **Github:** https://github.com/thunks/tman
+#
+# **License:** MIT
+
 # `bin/tman -r coffee-script/register example/simple.coffee`
 
 assert = require('assert')

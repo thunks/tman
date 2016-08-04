@@ -3,6 +3,8 @@
 //
 // **License:** MIT
 
+// `tman example/error-case.js`
+
 const assert = require('assert')
 const thunk = require('thunks')()
 const tman = require('..')

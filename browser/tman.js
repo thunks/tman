@@ -733,7 +733,7 @@ exports.Tman = function (env) {
 
   function childThunk (parent, domain) {
     parent.next = new Link(null, null)
-    return function (callback) {
+    return function thunkFunction (callback) {
       return child(parent, domain, callback)
     }
   }
@@ -827,6 +827,7 @@ exports.Tman = function (env) {
     if (isGenerator(obj)) return generatorToThunk(obj)
     if (isFunction(obj.toThunk)) return obj.toThunk()
     if (isFunction(obj.then)) return promiseToThunk(obj)
+    if (isFunction(obj.toPromise)) return promiseToThunk(obj.toPromise())
     if (thunkObj && (isArray(obj) || isObject(obj))) return objectToThunk(obj, thunkObj)
     return obj
   }
@@ -982,7 +983,7 @@ exports.Tman = function (env) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.4.2'
+  thunks.VERSION = '4.4.3'
   thunks.strictMode = true
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
@@ -1003,7 +1004,7 @@ exports.Tman = function (env) {
 },{"_process":6}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1054,7 +1055,7 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.4.2"
+    "thunks": "^4.4.3"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",

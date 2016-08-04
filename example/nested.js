@@ -3,6 +3,8 @@
 //
 // **License:** MIT
 
+// `tman example/nested.js`
+
 const assert = require('assert')
 const thunk = require('thunks')()
 const tman = require('..')
