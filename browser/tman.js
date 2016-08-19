@@ -148,9 +148,6 @@ var path = require('path')
 var thunks = require('thunks')
 var thunk = thunks()
 
-// compatible for CoffeeScript test.
-thunks.strictMode = false
-
 function Suite (title, parent, mode) {
   this.title = title
   this.parent = parent
@@ -158,7 +155,6 @@ function Suite (title, parent, mode) {
   while (this.root.parent) this.root = this.root.parent
 
   this.mode = mode
-  this.ctxMachine = this
   this.duration = -1
   this.startTime = 0
   this.endTime = 0
@@ -166,9 +162,10 @@ function Suite (title, parent, mode) {
   this.after = null
   this.beforeEach = null
   this.afterEach = null
+  this.children = []
+  this.ctxMachine = this
   this.depth = parent ? (parent.depth + 1) : 0
   this.state = null // skip: null, passed: true, failed: error
-  this.children = []
 }
 
 Suite.prototype.log = null
@@ -347,14 +344,14 @@ function Test (title, parent, fn, mode) {
   this.root = parent
   while (this.root.parent) this.root = this.root.parent
 
-  this.depth = parent.depth + 1
+  this.fn = fn
   this.mode = mode
   this.duration = -1
   this.startTime = 0
   this.endTime = 0
   this.timer = null
+  this.depth = parent.depth + 1
   this.state = null // skip: null, passed: true, failed: error
-  this.fn = fn
 }
 /* istanbul ignore next */
 Test.prototype.onStart = function () {}
@@ -573,7 +570,6 @@ exports.Tman = function (env) {
 }
 
 },{"path":5,"thunks":3}],3:[function(require,module,exports){
-(function (process){
 // **Github:** https://github.com/thunks/thunks
 //
 // **License:** MIT
@@ -588,28 +584,11 @@ exports.Tman = function (env) {
 }(typeof window === 'object' ? window : this, function () {
   'use strict'
 
-  var undef = void 0
   var maxTickDepth = 100
-  var toString = Object.prototype.toString
-  var hasOwnProperty = Object.prototype.hasOwnProperty
   /* istanbul ignore next */
-  var objectKeys = Object.keys || function (obj) {
-    var keys = []
-    for (var key in obj) {
-      if (hasOwnProperty.call(obj, key)) keys.push(key)
-    }
-    return keys
-  }
-  /* istanbul ignore next */
-  var isArray = Array.isArray || function (obj) {
-    return toString.call(obj) === '[object Array]'
-  }
-  /* istanbul ignore next */
-  var nextTick = (typeof process === 'object' && process.nextTick)
-    ? process.nextTick : typeof setImmediate === 'function'
-    ? setImmediate : function (fn) {
-      setTimeout(fn, 0)
-    }
+  var nextTick = typeof setImmediate === 'function'
+    ? setImmediate : typeof Promise === 'function'
+    ? function (fn) { Promise.resolve().then(fn) } : function (fn) { setTimeout(fn, 0) }
 
   function thunks (options) {
     var scope = options instanceof Scope ? options : new Scope(options)
@@ -797,13 +776,13 @@ exports.Tman = function (env) {
   function runThunk (ctx, value, callback, thunkObj, noTryRun) {
     var err
     var thunk = toThunk(value, thunkObj)
-    if (!isFunction(thunk)) return thunk === undef ? callback(null) : callback(null, thunk)
+    if (!isFunction(thunk)) return thunk === undefined ? callback(null) : callback(null, thunk)
     if (isGeneratorFn(thunk)) thunk = generatorToThunk(thunk.call(ctx))
     else if (isAsyncFn(thunk)) thunk = promiseToThunk(thunk.call(ctx))
     else if (thunk.length !== 1) {
       /* istanbul ignore next */
       if (!thunks.strictMode) return callback(null, thunk)
-      err = new Error('Not thunk function: ' + thunk)
+      err = new Error('Not thunkable function: ' + thunk)
       err.fn = thunk
       return callback(err)
     }
@@ -828,7 +807,7 @@ exports.Tman = function (env) {
     if (isFunction(obj.toThunk)) return obj.toThunk()
     if (isFunction(obj.then)) return promiseToThunk(obj)
     if (isFunction(obj.toPromise)) return promiseToThunk(obj.toPromise())
-    if (thunkObj && (isArray(obj) || isObject(obj))) return objectToThunk(obj, thunkObj)
+    if (thunkObj && (Array.isArray(obj) || isObject(obj))) return objectToThunk(obj, thunkObj)
     return obj
   }
 
@@ -868,12 +847,12 @@ exports.Tman = function (env) {
       var ctx = this
       var finished = false
 
-      if (isArray(obj)) {
+      if (Array.isArray(obj)) {
         result = Array(obj.length)
         for (len = obj.length; i < len; i++) next(obj[i], i)
       } else if (isObject(obj)) {
         result = {}
-        var keys = objectKeys(obj)
+        var keys = Object.keys(obj)
         for (len = keys.length; i < len; i++) next(obj[keys[i]], keys[i])
       } else throw new Error('Not array or object')
       return --pending || callback(null, result)
@@ -983,7 +962,7 @@ exports.Tman = function (env) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.4.3'
+  thunks.VERSION = '4.5.0'
   thunks.strictMode = true
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
@@ -1000,11 +979,10 @@ exports.Tman = function (env) {
   return thunks
 }))
 
-}).call(this,require('_process'))
-},{"_process":6}],4:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1027,24 +1005,14 @@ module.exports={
     "T-man",
     "tman",
     "test",
-    "manager",
     "thunk",
     "bdd",
     "tdd",
-    "tap",
-    "runner",
     "ava",
-    "fast",
-    "tape",
-    "tap",
-    "mocha",
-    "qunit",
-    "jasmine",
-    "cli-app",
-    "cli"
+    "mocha"
   ],
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 0.10"
   },
   "license": "MIT",
   "bugs": {
@@ -1055,17 +1023,17 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.4.3"
+    "thunks": "^4.5.0"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
-    "babel-polyfill": "^6.9.1",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.13.2",
     "babel-register": "^6.11.6",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.4",
     "standard": "^7.1.2",
-    "ts-node": "^1.2.2",
+    "ts-node": "^1.2.3",
     "typescript": "^1.8.10"
   },
   "files": [

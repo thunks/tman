@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -23,24 +23,14 @@
     "T-man",
     "tman",
     "test",
-    "manager",
     "thunk",
     "bdd",
     "tdd",
-    "tap",
-    "runner",
     "ava",
-    "fast",
-    "tape",
-    "tap",
-    "mocha",
-    "qunit",
-    "jasmine",
-    "cli-app",
-    "cli"
+    "mocha"
   ],
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 0.10"
   },
   "license": "MIT",
   "bugs": {
@@ -51,17 +41,17 @@
     "commander": "^2.9.0",
     "glob": "^7.0.5",
     "supports-color": "^3.1.2",
-    "thunks": "^4.4.3"
+    "thunks": "^4.5.0"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
-    "babel-polyfill": "^6.9.1",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.13.2",
     "babel-register": "^6.11.6",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.4",
     "standard": "^7.1.2",
-    "ts-node": "^1.2.2",
+    "ts-node": "^1.2.3",
     "typescript": "^1.8.10"
   },
   "files": [
