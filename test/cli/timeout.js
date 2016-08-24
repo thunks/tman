@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global suite, it */
+/* global suite, it */
 
 // `bin/tman -t 650 test/cli/timeout`
 

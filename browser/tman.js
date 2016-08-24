@@ -139,6 +139,7 @@ function createEl (tag, className, content) {
 }
 
 },{"../package.json":4,"./core":2}],2:[function(require,module,exports){
+(function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
 //
@@ -314,27 +315,37 @@ Suite.prototype.toThunk = function () {
       })(done)
     }
 
-    var tasks = []
-    if (ctx.before) tasks.push(thunkFn(ctx.before, ctx, ' "before" hook'))
-    ctx.children.forEach(function (test) {
-      if (ctx.beforeEach) tasks.push(thunkFn(ctx.beforeEach, ctx, ' "beforeEach" hook'))
-      tasks.push(test)
-      if (ctx.afterEach) tasks.push(thunkFn(ctx.afterEach, ctx, ' "afterEach" hook'))
-    })
-    if (ctx.after) tasks.push(thunkFn(ctx.after, ctx, ' "after" hook'))
-
-    ctx.startTime = Date.now()
-    thunk.seq(tasks)(function (err) {
+    function suiteFinish (err) {
+      suiteFinish.called = true
+      clearTimeout(ctx.timer)
+      ctx.root.pendingCallback = null
       if (err == null) ctx.state = true
       else {
         ctx.state = err
         ctx.root.errors.push(err)
         err.order = ctx.root.errors.length
-        err.title = ctx.fullTitle() + (err.title || '')
+        err.title = ctx.fullTitle() + (err.title || suiteFinish.hookTitle || '')
       }
       ctx.endTime = Date.now()
       ctx.onFinish()
-    })(done)
+      done()
+    }
+
+    var tasks = []
+    if (ctx.before) tasks.push(thunkHook(ctx.before, suiteFinish, ctx, ' "before" hook'))
+    ctx.children.forEach(function (test) {
+      if (ctx.beforeEach) {
+        tasks.push(thunkHook(ctx.beforeEach, suiteFinish, ctx, ' "beforeEach" hook'))
+      }
+      tasks.push(test)
+      if (ctx.afterEach) {
+        tasks.push(thunkHook(ctx.afterEach, suiteFinish, ctx, ' "afterEach" hook'))
+      }
+    })
+    if (ctx.after) tasks.push(thunkHook(ctx.after, suiteFinish, ctx, ' "after" hook'))
+
+    ctx.startTime = Date.now()
+    thunk.seq(tasks)(suiteFinish)
   }
 }
 
@@ -408,7 +419,26 @@ Test.prototype.toThunk = function () {
       return done()
     }
 
+    function testFinish (err) {
+      testFinish.called = true
+      clearTimeout(ctx.timer)
+      ctx.root.pendingCallback = null
+      if (err == null) {
+        ctx.state = true
+        ctx.root.passed++
+      } else {
+        ctx.state = err
+        ctx.root.errors.push(err)
+        err.order = ctx.root.errors.length
+        err.title = ctx.fullTitle()
+      }
+      ctx.endTime = Date.now()
+      ctx.onFinish()
+      done()
+    }
+
     ctx.startTime = Date.now()
+    ctx.root.pendingCallback = testFinish
     thunk.race([
       function (callback) {
         thunk.call(ctx, thunks.isThunkableFn(ctx.fn) ? ctx.fn : ctx.fn())(callback)
@@ -422,20 +452,7 @@ Test.prototype.toThunk = function () {
           }, duration)
         })
       }
-    ])(function (err) {
-      clearTimeout(ctx.timer)
-      if (err == null) {
-        ctx.state = true
-        ctx.root.passed++
-      } else {
-        ctx.state = err
-        ctx.root.errors.push(err)
-        err.order = ctx.root.errors.length
-        err.title = ctx.fullTitle()
-      }
-      ctx.endTime = Date.now()
-      ctx.onFinish()
-    })(done)
+    ])(testFinish)
   }
 }
 
@@ -457,8 +474,10 @@ function assertStr (str, ctx) {
   }
 }
 
-function thunkFn (fn, ctx, title) {
+function thunkHook (fn, suiteFinish, ctx, title) {
   return function (done) {
+    suiteFinish.hookTitle = title
+    ctx.root.pendingCallback = suiteFinish
     thunk.call(ctx)(function () {
       return thunks.isThunkableFn(fn) ? fn : fn.call(this)
     })(function (err) {
@@ -481,6 +500,7 @@ exports.Tman = function (env) {
   rootSuite.passed = 0
   rootSuite.ignored = 0
   rootSuite.errors = []
+  rootSuite.pendingCallback = null
   rootSuite.timeout(2000)
 
   tm.only = _tman('only')
@@ -546,30 +566,46 @@ exports.Tman = function (env) {
     /* istanbul ignore next */
     if (running) throw new Error('T-man is running!')
 
+    function endTest (err) {
+      process.removeListener('uncaughtException', uncaught)
+      endTest.called = true
+      callback = callback || tm._afterRun
+      if (err) return callback.call(tm, err)
+
+      var result = rootSuite.toJSON()
+      result.passed = rootSuite.passed
+      result.ignored = rootSuite.ignored
+      result.errors = rootSuite.errors.slice()
+      callback.call(tm, null, result)
+    }
+
+    function uncaught (err) {
+      var uncaughtHandle = rootSuite.pendingCallback || endTest
+      err = err || new Error('uncaught exception')
+      err.name = 'UncaughtError'
+      if (uncaughtHandle.called) rootSuite.log(err)
+      else uncaughtHandle(err)
+    }
+
     running = true
     rootSuite.abort = false
     rootSuite.passed = 0
     rootSuite.ignored = 0
     rootSuite.errors = []
-    if (tm._beforeRun) tm._beforeRun()
 
+    tm.uncaught = uncaught
+    process.on('uncaughtException', uncaught)
+    if (tm._beforeRun) tm._beforeRun()
     return thunk.delay.call(tm)(function () {
       return rootSuite
-    })(function (err) {
-      if (err) throw err
-      var result = rootSuite.toJSON()
-      result.passed = rootSuite.passed
-      result.ignored = rootSuite.ignored
-      result.errors = rootSuite.errors.slice()
-
-      return result
-    })(callback || tm._afterRun)
+    })(endTest)
   }
 
   return tm
 }
 
-},{"path":5,"thunks":3}],3:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":6,"path":5,"thunks":3}],3:[function(require,module,exports){
 // **Github:** https://github.com/thunks/thunks
 //
 // **License:** MIT
@@ -1031,9 +1067,9 @@ module.exports={
     "babel-preset-es2015": "^6.13.2",
     "babel-register": "^6.11.6",
     "coffee-script": "^1.10.0",
-    "istanbul": "^0.4.4",
-    "standard": "^7.1.2",
-    "ts-node": "^1.2.3",
+    "istanbul": "^0.4.5",
+    "standard": "^8.0.0",
+    "ts-node": "^1.3.0",
     "typescript": "^1.8.10"
   },
   "files": [

@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global suite, it, after */
+/* global suite, it, after */
 
 // `bin/tman test/cli/sigint`
 // then `control + c`

@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global describe, it, before, after*/
+/* global describe, it, before, after */
 
 // `tman example/mocha.js`
 

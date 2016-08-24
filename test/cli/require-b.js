@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global suite, it, testRequire */
+/* global suite, it, testRequire */
 
 // `bin/tman -r test/cli/require-a test/cli/require-b`
 

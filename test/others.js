@@ -579,4 +579,100 @@ tman.suite('Timeouts and errors', function () {
       tman.rootSuite.passed += res.passed
     })
   })
+
+  tman.it('uncaughtException errors', function () {
+    var ctx = this
+    var count = 0
+    // new child instance for test
+    var t = tman.createTman()
+    var messages = []
+    // log for new instance
+    t.rootSuite.log = function () {
+      var args = slice.call(arguments)
+      messages = messages.concat(args)
+      args[0] = format.indent(ctx.depth) + args[0]
+      tman.rootSuite.log.apply(null, args)
+    }
+    // remove parent uncaughtException handle
+    process.removeListener('uncaughtException', tman.uncaught)
+
+    t.before(function () {
+      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      assert.strictEqual(count++, 0)
+    })
+
+    t.after(function () {
+      assert.strictEqual(count++, 5)
+      // add parent uncaughtException handle
+      process.on('uncaughtException', tman.uncaught)
+    })
+
+    t.it('test 1-1 with error', function (done) {
+      assert.strictEqual(count++, 1)
+      setTimeout(function () {
+        throw new Error('error')
+      })
+    })
+
+    t.it('test 1-2', function () {
+      assert.strictEqual(count++, 2)
+    })
+
+    t.suite('suite 1-1', function () {
+      t.before(function (done) {
+        setTimeout(function () {
+          throw new Error('before hook error')
+        })
+      })
+
+      t.it('test 2-1 not run', function () {
+        assert.strictEqual(count++, 0)
+      })
+    })
+
+    t.suite('suite 1-2', function () {
+      t.afterEach(function (done) {
+        setTimeout(function () {
+          throw new Error('afterEach hook error')
+        })
+      })
+
+      t.it('test 2-1 run', function () {
+        assert.strictEqual(count++, 3)
+      })
+
+      t.it('test 2-2 not run', function () {
+        assert.strictEqual(count++, 0)
+      })
+    })
+
+    t.it('test 1-3', function () {
+      assert.strictEqual(count++, 4)
+    })
+
+    return t.run(function (err, res) {
+      if (err) throw err
+      assert.strictEqual(res.passed, 3)
+      assert.strictEqual(res.ignored, 0)
+
+      messages = messages.join('')
+      assert.ok(messages.indexOf('test 1-1 with error (1)') > 0)
+      assert.ok(messages.indexOf('/suite 1-1 "before" hook (2)') > 0)
+      assert.ok(messages.indexOf('/suite 1-2 "afterEach" hook (3)') > 0)
+
+      assert.ok(res.errors[0] instanceof Error)
+      assert.strictEqual(res.errors[0].order, 1)
+      assert.strictEqual(res.errors[0].title, '/test 1-1 with error')
+
+      assert.ok(res.errors[1] instanceof Error)
+      assert.strictEqual(res.errors[1].order, 2)
+      assert.strictEqual(res.errors[1].title, '/suite 1-1 "before" hook')
+
+      assert.ok(res.errors[2] instanceof Error)
+      assert.strictEqual(res.errors[2].order, 3)
+      assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" hook')
+
+      tman.rootSuite.passed += res.passed
+    })
+  })
 })
