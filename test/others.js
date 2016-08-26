@@ -11,7 +11,7 @@ var tman = require('..')
 var format = tman.format
 
 tman.suite('Exclusive or inclusive tests', function () {
-  tman.it('skip test', function () {
+  tman.it('"skip" test', function () {
     var ctx = this
     var count = 0
     // new child instance for test
@@ -83,7 +83,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     })
   })
 
-  tman.it('only test', function () {
+  tman.it('"only" test', function () {
     var ctx = this
     var count = 0
     // new child instance for test
@@ -132,7 +132,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     })
   })
 
-  tman.it('only suite', function () {
+  tman.it('"only" suite and "skip" test', function () {
     var ctx = this
     var count = 0
     // new child instance for test
@@ -152,7 +152,7 @@ tman.suite('Exclusive or inclusive tests', function () {
     })
 
     t.after(function () {
-      assert.strictEqual(count++, 3)
+      assert.strictEqual(count++, 4)
     })
 
     t.suite('suite 1-1', function () {
@@ -173,6 +173,16 @@ tman.suite('Exclusive or inclusive tests', function () {
       t.it('test 2-2', function () {
         assert.strictEqual(count++, 2)
       })
+
+      t.suite('suite 2-1', function () {
+        t.it('test 3-1', function () {
+          assert.strictEqual(count++, 3)
+        })
+
+        t.it.skip('test 3-2', function () {
+          assert.strictEqual(true, false)
+        })
+      })
     })
 
     t.it('test 1-1', function () {
@@ -181,18 +191,23 @@ tman.suite('Exclusive or inclusive tests', function () {
 
     return t.run(function (err, res) {
       if (err) throw err
-      assert.strictEqual(res.passed, 2)
-      assert.strictEqual(res.ignored, 0)
+      assert.strictEqual(res.passed, 3)
+      assert.strictEqual(res.ignored, 1)
 
       messages = messages.join('')
       assert.ok(messages.indexOf('suite 1-1') === -1)
       assert.ok(messages.indexOf('suite 1-2') > 0)
+      assert.ok(messages.indexOf('test 2-1') > 0)
+      assert.ok(messages.indexOf('test 2-2') > 0)
+      assert.ok(messages.indexOf('suite 2-1') > 0)
+      assert.ok(messages.indexOf('test 3-1') > 0)
+      assert.ok(messages.indexOf('test 3-2') > 0)
       assert.ok(messages.indexOf('test 1-1') === -1)
       tman.rootSuite.passed += res.passed
     })
   })
 
-  tman.it('only first "only" run', function () {
+  tman.it('muilt "only"', function () {
     var ctx = this
     var count = 0
     // new child instance for test
@@ -212,48 +227,82 @@ tman.suite('Exclusive or inclusive tests', function () {
     })
 
     t.after(function () {
-      assert.strictEqual(count++, 2)
+      assert.strictEqual(count++, 7)
     })
 
     t.suite('suite 1-1', function () {
-      t.it('test 2-1', function () {
+      t.it('test 1-2-1', function () {
         assert.strictEqual(true, false)
       })
 
-      t.it('test 2-2', function () {
-        assert.strictEqual(true, false)
-      })
-    })
-
-    t.suite('suite 1-2', function () {
-      t.it('test 2-1', function () {
-        assert.strictEqual(true, false)
-      })
-
-      t.it.only('test 2-2', function () {
-        assert.strictEqual(count++, 1)
-      })
-
-      t.it.only('test 2-3', function () {
+      t.it('test 1-2-2', function () {
         assert.strictEqual(true, false)
       })
     })
 
-    t.it('test 1-1', function () {
+    t.it.only('test 1-1', function () {
+      assert.strictEqual(count++, 1)
+    })
+
+    t.it('test 1-2', function () {
+      assert.strictEqual(true, false)
+    })
+
+    t.suite.only('suite 1-2', function () {
+      t.it('test 2-2-1', function () {
+        assert.strictEqual(count++, 2)
+      })
+
+      t.it('test 2-2-2', function () {
+        assert.strictEqual(count++, 3)
+      })
+
+      t.it.skip('test 2-2-3', function () {
+        assert.strictEqual(true, false)
+      })
+    })
+
+    t.suite.only('suite 1-3', function () {
+      t.it('test 3-2-1', function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.it.only('test 3-2-2', function () {
+        assert.strictEqual(count++, 4)
+      })
+
+      t.it.only('test 3-2-3', function () {
+        assert.strictEqual(count++, 5)
+      })
+    })
+
+    t.it.only('test 1-3', function () {
+      assert.strictEqual(count++, 6)
+    })
+
+    t.it('test 1-4', function () {
       assert.strictEqual(true, false)
     })
 
     return t.run(function (err, res) {
       if (err) throw err
-      assert.strictEqual(res.passed, 1)
-      assert.strictEqual(res.ignored, 0)
+      assert.strictEqual(res.passed, 6)
+      assert.strictEqual(res.ignored, 1)
 
       messages = messages.join('')
       assert.ok(messages.indexOf('suite 1-1') === -1)
+      assert.ok(messages.indexOf('test 1-1') > 0)
+      assert.ok(messages.indexOf('test 1-2') === -1)
       assert.ok(messages.indexOf('suite 1-2') > 0)
-      assert.ok(messages.indexOf('test 2-1') === -1)
-      assert.ok(messages.indexOf('test 2-2') > 0)
-      assert.ok(messages.indexOf('test 2-1') === -1)
+      assert.ok(messages.indexOf('test 2-2-1') > 0)
+      assert.ok(messages.indexOf('test 2-2-2') > 0)
+      assert.ok(messages.indexOf('test 2-2-3') > 0)
+      assert.ok(messages.indexOf('suite 1-3') > 0)
+      assert.ok(messages.indexOf('test 3-2-1') === -1)
+      assert.ok(messages.indexOf('test 3-2-2') > 0)
+      assert.ok(messages.indexOf('test 3-2-3') > 0)
+      assert.ok(messages.indexOf('test 1-3') > 0)
+      assert.ok(messages.indexOf('test 1-4') === -1)
       tman.rootSuite.passed += res.passed
     })
   })

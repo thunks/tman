@@ -17,22 +17,21 @@ tman.before(function () {
 })
 
 tman.after(function () {
-  assert.strictEqual(count++, 2)
+  assert.strictEqual(count++, 5)
   console.log('End only tests')
 })
 
-tman.suite('error suite 1', function () {
+tman.suite('suite 1', function () {
   tman.beforeEach(function * () {
-    count++
     yield thunk.delay(10)
   })
 
-  tman.it('success test', function () {
-    assert.strictEqual(count++, 2)
+  tman.it.only('only test 1-1', function () {
+    assert.strictEqual(count++, 1)
   })
 
   tman.it.skip('skip test', function () {
-    assert.strictEqual(count++, 4)
+    assert.strictEqual(true, false)
   })
 
   tman.it('assert error', function () {
@@ -43,15 +42,13 @@ tman.suite('error suite 1', function () {
     throw new Error('throw error')
   })
 
-  tman.suite('error suite 2', function () {
-    tman.it('assert error', function * () {
-      assert.strictEqual(true, false)
-      yield thunk.delay(100)
+  tman.suite.only('only suite 1-2', function () {
+    tman.it.only('only test 1-2-1', function * () {
+      assert.strictEqual(count++, 2)
     })
 
-    tman.suite('error suite 3', function () {
-      tman.it('assert error', function * () {
-        yield thunk.delay(100)
+    tman.suite('suite 1-2-1', function () {
+      tman.it('assert error', function () {
         assert.strictEqual(true, false)
       })
 
@@ -59,16 +56,15 @@ tman.suite('error suite 1', function () {
         throw new Error('throw error')
       })
 
-      tman.it.only('time out error', function * () {
-        this.timeout(100)
-        yield thunk.delay(1000)
+      tman.it.only('only test 1-2-1-1', function () {
+        assert.strictEqual(count++, 3)
       })
     })
   })
 })
 
-tman.it('assert error', function () {
-  assert.strictEqual(true, false)
+tman.it.only('only test 1-1', function () {
+  assert.strictEqual(count++, 4)
 })
 
 tman.it('throw error', function () {

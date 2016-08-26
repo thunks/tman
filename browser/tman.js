@@ -155,7 +155,7 @@ function Suite (title, parent, mode) {
   this.root = this
   while (this.root.parent) this.root = this.root.parent
 
-  this.mode = mode
+  this.mode = mode // 'skip', 'only', 'hasOnly'
   this.duration = -1
   this.startTime = 0
   this.endTime = 0
@@ -209,27 +209,20 @@ Suite.prototype.pushSuite = function (title, fn, mode) {
   var ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
-  // stop reading if 'only' mode
-  if (ctx.isOnlyMode()) return
   var suite = new Suite(title, ctx, mode)
+  if (mode === 'only' && !ctx.isSkip()) ctx.setOnly()
   ctx.children.push(suite)
   this.ctxMachine = suite
   fn.call(suite)
   this.ctxMachine = ctx
-  if (mode === 'only' && !ctx.isSkipMode()) suite.setOnlyMode()
 }
 
 Suite.prototype.pushTest = function (title, fn, mode) {
   var ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
-  // stop reading if 'only' mode
-  if (ctx.isOnlyMode()) return
   var test = new Test(title, ctx, fn, mode)
-  if (mode === 'only' && !ctx.isSkipMode()) {
-    ctx.children.length = 0
-    ctx.setOnlyMode()
-  }
+  if (mode === 'only' && !ctx.isSkip()) ctx.setOnly()
   ctx.children.push(test)
 }
 
@@ -261,28 +254,24 @@ Suite.prototype.pushAfterEach = function (fn) {
   ctx.afterEach = fn
 }
 
-Suite.prototype.isOnlyMode = function () {
-  return this.root.mode === 'only'
+Suite.prototype.setOnly = function () {
+  this.mode = 'hasOnly'
+  if (this.parent) this.parent.setOnly()
 }
 
-Suite.prototype.isSkipMode = function () {
+Suite.prototype.hasOnly = function () {
+  if (this.mode === 'hasOnly') return true
+  return this.parent ? this.parent.hasOnly() : false
+}
+
+Suite.prototype.isOnly = function () {
+  if (this.mode === 'only') return true
+  return this.parent ? this.parent.isOnly() : false
+}
+
+Suite.prototype.isSkip = function () {
   if (this.mode === 'skip') return true
-  return this.parent ? this.parent.isSkipMode() : false
-}
-
-// only one 'only' mode is allowed
-// will stop reading the rest
-Suite.prototype.setOnlyMode = function () {
-  if (this.parent) {
-    // pull all child suite or test
-    this.parent.children.length = 0
-    // push the 'only' mode suite or it's parent.
-    this.parent.children.push(this)
-    this.parent.setOnlyMode()
-  } else {
-    // the root suite must be marked as 'only'
-    this.mode = 'only'
-  }
+  return this.parent ? this.parent.isSkip() : false
 }
 
 Suite.prototype.timeout = function (duration) {
@@ -301,10 +290,13 @@ Suite.prototype.fullTitle = function () {
 
 Suite.prototype.toThunk = function () {
   var ctx = this
+  var hasOnly = this.hasOnly()
 
   return function (done) {
     /* istanbul ignore next */
     if (ctx.root.abort) return done()
+    if (hasOnly && ctx.mode !== 'hasOnly' && !ctx.isOnly()) return done()
+
     ctx.onStart()
     if (ctx.mode === 'skip') {
       return thunk.seq(ctx.children.map(function (test) {
@@ -334,6 +326,7 @@ Suite.prototype.toThunk = function () {
     var tasks = []
     if (ctx.before) tasks.push(thunkHook(ctx.before, suiteFinish, ctx, ' "before" hook'))
     ctx.children.forEach(function (test) {
+      if (hasOnly && test.mode !== 'hasOnly' && !test.isOnly()) return
       if (ctx.beforeEach) {
         tasks.push(thunkHook(ctx.beforeEach, suiteFinish, ctx, ' "beforeEach" hook'))
       }
@@ -356,7 +349,7 @@ function Test (title, parent, fn, mode) {
   while (this.root.parent) this.root = this.root.parent
 
   this.fn = fn
-  this.mode = mode
+  this.mode = mode // 'skip', 'only'
   this.duration = -1
   this.startTime = 0
   this.endTime = 0
@@ -394,6 +387,10 @@ Test.prototype.toJSON = function () {
   }
 }
 
+Test.prototype.isOnly = function () {
+  return this.mode === 'only' || this.parent.isOnly()
+}
+
 Test.prototype.timeout = function (duration) {
   if (!(duration >= 0)) throw new Error('invalid timeout: ' + String(duration))
   this.duration = duration
@@ -409,9 +406,11 @@ Test.prototype.fullTitle = function () {
 
 Test.prototype.toThunk = function () {
   var ctx = this
+
   return function (done) {
     /* istanbul ignore next */
     if (ctx.root.abort) return done()
+    if (ctx.parent.hasOnly() && !ctx.isOnly()) return done()
     ctx.onStart()
     if (ctx.mode === 'skip') {
       ctx.root.ignored++
@@ -1018,7 +1017,7 @@ exports.Tman = function (env) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.0.6",
+  "version": "1.1.1",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1057,15 +1056,15 @@ module.exports={
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
     "commander": "^2.9.0",
-    "glob": "^7.0.5",
+    "glob": "^7.0.6",
     "supports-color": "^3.1.2",
     "thunks": "^4.5.0"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
     "babel-polyfill": "^6.13.0",
-    "babel-preset-es2015": "^6.13.2",
-    "babel-register": "^6.11.6",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-register": "^6.14.0",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.5",
     "standard": "^8.0.0",
