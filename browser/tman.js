@@ -552,6 +552,15 @@ exports.Tman = function (env) {
     rootSuite.pushAfterEach(fn)
   }
 
+  tm.abort = function () {
+    rootSuite.abort = true
+  }
+
+  tm.exit = function (code) {
+    if (process.exit) process.exit(code)
+    else if (code) setTimeout(function () { throw new Error('Exit ' + code) })
+  }
+
   var timer = null
   var running = false
   tm.tryRun = function (delay) {
@@ -1017,7 +1026,7 @@ exports.Tman = function (env) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"

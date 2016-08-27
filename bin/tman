@@ -3,7 +3,7 @@
  * Modified from https://github.com/mochajs/mocha
  *
  * This tiny wrapper file checks for known node flags and appends them
- * when found, before invoking the "real" _mocha(1) executable.
+ * when found, before invoking the "real" _tman(1) executable.
  */
 
 var path = require('path')
@@ -57,15 +57,15 @@ process.argv.slice(2).forEach(function (arg) {
 })
 
 var proc = spawn(process.execPath, args, {stdio: 'inherit'})
-proc.on('exit', function (code, signal) {
-  process.on('exit', function () {
-    if (signal) process.kill(process.pid, signal)
-    else process.exit(code)
-  })
-})
-
+// listen children exit
+proc.once('exit', handleExit)
+process.once('exit', handleExit)
+function handleExit (code, signal) {
+  if (signal) process.kill(process.pid, signal)
+  else process.exit(code)
+}
 // terminate children.
-process.on('SIGINT', function () {
-  proc.kill('SIGINT') // calls runner.abort()
-  proc.kill('SIGTERM') // if that didn't work, we're probably in an infinite loop, so make it die.
+process.once('SIGINT', function () {
+  // force to exit in 3.1 seconds.
+  setTimeout(function () { process.exit(1) }, 3100)
 })

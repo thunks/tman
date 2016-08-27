@@ -87,13 +87,13 @@ globals.forEach(function (name) {
 global.tman = tman
 if (!tman.env.TEST) tman.env.TEST = 'root'
 tman.rootSuite.exit = program.exit
-process.once('SIGINT', function () {
-  tman.rootSuite.abort = true
-  // force to exit in 3 seconds.
-  setTimeout(function () {
-    process.exit(1)
-  }, 3000)
-})
+if (!process.env.npm_execpath) { // can't exit when run in npm script
+  process.once('SIGINT', function () {
+    tman.abort()
+    // force to exit in 3 seconds.
+    setTimeout(function () { tman.exit(1) }, 3000)
+  })
+}
 
 // files.
 var files = []
