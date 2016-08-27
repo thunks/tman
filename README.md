@@ -219,7 +219,7 @@ npm script in `package.json`(, also with `istanbul`):
 ```json
 "scripts": {
   "test": "tman",
-  "test-cov": "istanbul cover tman"
+  "test-cov": "istanbul cover _tman"
 }
 ```
 
@@ -430,17 +430,35 @@ tman.run()
 #### T-man CLI
 
 ```sh
-Usage: tman [options] [files]
+$ tman --help
+
+Usage: tman [debug] [options] [files]
 
   Options:
-    -h, --help            output usage information
-    -V, --version         output the version number
-    -r, --require <name>  require the given module
-    -t, --timeout <ms>    set test-case timeout in milliseconds [2000]
-    -c, --color           force enabling of colors
-    -C, --no-color        force disabling of colors
-    --no-timeout          disables timeouts, given implicitly with --debug
-    --no-exit             require a clean shutdown of the event loop: T-man will not call process.exit
+
+    -h, --help                           output usage information
+    -V, --version                        output the version number
+    -c, --color                          force enabling of colors
+    -C, --no-color                       force disabling of colors
+    -d, --debug                          enable node\'s debugger, synonym for node --debug
+    -gc, --expose-gc                     expose gc extension
+    -r, --require <name>                 require the given module
+    -t, --timeout <ms>                   set test-case timeout in milliseconds [2000]
+    --debug-brk                          enable node\'s debugger breaking on the first line
+    --es_staging                         enable all staged features
+    --globals <names>                    allow the given comma-delimited global [names]
+    --harmony<_classes,_generators,...>  all node --harmony* flags are available
+    --icu-data-dir                       include ICU data
+    --no-sort                            don\'t sort test files
+    --no-timeout                         disables timeouts, given implicitly with --debug
+    --no-exit                            require a clean shutdown of the event loop: T-man will not call process.exit
+    --opts <path>                        specify opts path
+    --perf-basic-prof                    enable perf linux profiler (basic support)
+    --preserve-symlinks                  Instructs the module loader to preserve symbolic links when resolving and caching modules
+    --throw-deprecation                  throw an exception anytime a deprecated function is used
+    --trace                              trace function calls
+    --trace-deprecation                  show stack traces on deprecations
+    --use_strict                         enforce strict mode
 ```
 
 #### T-man test mode

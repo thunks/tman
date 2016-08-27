@@ -1017,19 +1017,20 @@ exports.Tman = function (env) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/tman.js",
   "bin": {
-    "tman": "./bin/tman"
+    "tman": "./bin/tman",
+    "_tman": "./bin/_tman"
   },
   "scripts": {
     "test": "standard && bin/tman",
     "test-all": "make test",
-    "test-cov": "istanbul cover bin/tman",
+    "test-cov": "istanbul cover bin/_tman",
     "browser": "browserify lib/browser.js -s tman -o browser/tman.js"
   },
   "repository": {
