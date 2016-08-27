@@ -1,127 +1,71 @@
 #!/usr/bin/env node
+/**
+ * Modified from https://github.com/mochajs/mocha
+ *
+ * This tiny wrapper file checks for known node flags and appends them
+ * when found, before invoking the "real" _mocha(1) executable.
+ */
 
-var fs = require('fs')
 var path = require('path')
-var glob = require('glob')
-var program = require('commander')
-var cwd = process.cwd()
-var packageInfo = require('../package.json')
+var spawn = require('child_process').spawn
+var getOptions = require('./options')
+var args = [path.join(__dirname, '_tman')]
 
-// Prefer the local installation of T-man
-var tman = localTman(path.join(cwd, 'node_modules', 'tman')) || localTman(cwd) || require('..')
+// Load tman.opts into process.argv
+// Must be loaded here to handle node-specific options
+getOptions()
 
-if (packageInfo.version !== tman.VERSION) {
-  console.warn(tman.format.red('\nWarning: T-man version mismatch:', true))
-  console.warn(tman.format.red('  Global: v' + packageInfo.version + ', update: npm i -g tman', true))
-  console.warn(tman.format.red('  Local: v' + tman.VERSION + ', update: npm i tman@latest\n', true))
-}
+process.argv.slice(2).forEach(function (arg) {
+  var flag = arg.split('=')[0]
 
-// options
-program._name = tman.NAME
-program
-  .version('v' + tman.VERSION)
-  .usage('[options] [files]')
-  .option('-r, --require <name>', 'require the given module')
-  .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
-  .option('-c, --color', 'force enabling of colors')
-  .option('-C, --no-color', 'force disabling of colors')
-  .option('--no-sort', 'don\'t sort test files')
-  .option('--no-timeout', 'disables timeouts, given implicitly with --debug')
-  .option('--no-exit', 'require a clean shutdown of the event loop: T-man will not call process.exit')
-
-module.paths.push(cwd, path.join(cwd, 'node_modules'))
-// -r, --require
-var requires = []
-program.on('require', function (name) {
-  var stat = fsStat(name + '.js') || fsStat(name)
-  if (stat) name = path.resolve(name)
-  requires.push(name)
-})
-
-// parse args
-program.parse(process.argv)
-
-// --timeout
-if (program.timeout === false) {
-  tman.rootSuite.no_timeout = true
-} else {
-  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 2000)
-}
-
-// requires
-requires.forEach(function (mod) { require(mod) })
-
-// register to global object
-;['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach'].forEach(function (name) {
-  if (global[name]) throw new Error('"' + name + '" exists on global object')
-  global[name] = tman[name]
-})
-global.tman = tman
-if (!tman.env.TEST) tman.env.TEST = 'root'
-tman.rootSuite.exit = program.exit
-process.once('SIGINT', function () {
-  tman.rootSuite.abort = true
-  // force to exit in 3 seconds.
-  setTimeout(function () {
-    process.exit(1)
-  }, 3000)
-})
-
-// files.
-var files = []
-var args = program.args
-// default files to `test/*.{js,ts,coffee}`
-if (!args.length) args.push(path.join('test', '*.{js,ts,coffee}'))
-args.forEach(function (arg) {
-  var result = []
-  if (fsStat(arg) === 1) {
-    files.push(arg)
-    return
+  switch (flag) {
+    case '-d':
+      args.unshift('--debug')
+      args.push('--no-timeout')
+      break
+    case 'debug':
+    case '--debug':
+    case '--debug-brk':
+      args.unshift(arg)
+      args.push('--no-timeout')
+      break
+    case '-gc':
+    case '--expose-gc':
+      args.unshift('--expose-gc')
+      break
+    case '--gc-global':
+    case '--es_staging':
+    case '--no-deprecation':
+    case '--prof':
+    case '--log-timer-events':
+    case '--throw-deprecation':
+    case '--trace-deprecation':
+    case '--use_strict':
+    case '--allow-natives-syntax':
+    case '--perf-basic-prof':
+      args.unshift(arg)
+      break
+    default:
+      if (arg.indexOf('--harmony') === 0) args.unshift(arg)
+      else if (arg.indexOf('--trace') === 0) args.unshift(arg)
+      else if (arg.indexOf('--icu-data-dir') === 0) args.unshift(arg)
+      else if (arg.indexOf('--max-old-space-size') === 0) args.unshift(arg)
+      else if (arg.indexOf('--preserve-symlinks') === 0) args.unshift(arg)
+      else args.push(arg)
+      break
   }
-  var filenames = glob.sync(arg)
-  if (!filenames.length) filenames.push(arg + '.js')
-  filenames.forEach(function (filename) {
-    var stat = fsStat(filename)
-    if (stat === 1) result.push(filename)
-    else if (stat === 2) {
-      result.push.apply(result, glob.sync(path.join(filename, '*.{js,ts,coffee}')))
-    }
+})
+
+var proc = spawn(process.execPath, args, {stdio: 'inherit'})
+proc.on('exit', function (code, signal) {
+  process.on('exit', function () {
+    if (signal) process.kill(process.pid, signal)
+    else process.exit(code)
   })
-  files.push.apply(files, result)
 })
 
-sortFiles(files)
-// load tests
-files.forEach(function (filePath) {
-  require(path.resolve(filePath))
+// terminate children.
+process.on('SIGINT', function () {
+  proc.kill('SIGINT') // calls runner.abort()
+  proc.kill('SIGTERM') // if that didn't work, we're probably in an infinite loop, so make it die.
 })
-tman.tryRun()
-
-function sortFiles (list) {
-  if (program.sort !== false) {
-    list.sort(function (a, b) {
-      return (a.split(path.sep).length - b.split(path.sep).length) ||
-        Number(a > b) || -Number(a < b)
-    })
-  }
-  return list
-}
-
-function localTman (dirname) {
-  var tmanId = path.sep + path.join('lib', 'tman.js')
-  var file = path.join(dirname, 'lib', 'tman.js')
-  if (file.slice(tmanId.length * -1) !== tmanId) return null
-  if (fsStat(file) !== 1 || fsStat(path.join(dirname, 'bin', 'tman')) !== 1) return null
-  return require(file)
-}
-
-// 0: unknown, 1: file, 2: directory
-function fsStat (filePath) {
-  try {
-    var stat = fs.statSync(filePath)
-    if (stat.isFile()) return 1
-    else if (stat.isDirectory()) return 2
-    else return 0
-  } catch (e) {}
-  return 0
-}

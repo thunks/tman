@@ -1017,7 +1017,7 @@ exports.Tman = function (env) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1058,7 +1058,7 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.6",
     "supports-color": "^3.1.2",
-    "thunks": "^4.5.0"
+    "thunks": "^4.5.1"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
