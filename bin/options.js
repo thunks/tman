@@ -19,7 +19,7 @@ module.exports = function () {
     process.argv = process.argv
       .slice(0, 2)
       .concat(opts.concat(process.argv.slice(2)))
-  } catch (err) { /* ignore */ }
+  } catch (err) {}
 
   process.env.LOADED_TMAN_OPTS = true
 }

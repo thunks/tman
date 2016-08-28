@@ -5,16 +5,17 @@ var path = require('path')
 var glob = require('glob')
 var program = require('commander')
 var getOptions = require('./options')
-var cwd = process.cwd()
 var packageInfo = require('../package.json')
+var cwd = process.cwd()
 
 // Prefer the local installation of T-man
 var tman = localTman(path.join(cwd, 'node_modules', 'tman')) || localTman(cwd) || require('..')
-
 if (packageInfo.version !== tman.VERSION) {
   console.warn(tman.format.red('\nWarning: T-man version mismatch:', true))
-  console.warn(tman.format.red('  Global: v' + packageInfo.version + ', update: npm i -g tman', true))
-  console.warn(tman.format.red('  Local: v' + tman.VERSION + ', update: npm i tman@latest\n', true))
+  console.warn(tman.format.red(
+    '  Global: v' + packageInfo.version + ', update: npm i -g tman', true))
+  console.warn(tman.format.red(
+    '  Local: v' + tman.VERSION + ', update: npm i tman@latest\n', true))
 }
 
 // options
@@ -53,7 +54,7 @@ program.on('require', function (name) {
   if (stat) name = path.resolve(name)
   requires.push(name)
 })
-
+// --globals <names>
 var globals = []
 program.on('globals', function (val) {
   globals.push.apply(globals, parseList(val))
@@ -61,10 +62,10 @@ program.on('globals', function (val) {
 
 // If not already done, load mocha.opts
 if (!process.env.LOADED_TMAN_OPTS) getOptions()
-
 // parse args
 program.parse(process.argv)
-
+// --no-exit
+tman.rootSuite.exit = program.exit
 // --timeout
 if (program.timeout === false) {
   tman.rootSuite.no_timeout = true
@@ -77,7 +78,7 @@ requires.forEach(function (mod) { require(mod) })
 
 // register to global object
 if (!globals.length) {
-  globals = ['describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach']
+  globals.push('describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach')
 }
 globals.forEach(function (name) {
   if (global[name]) throw new Error('"' + name + '" exists on global')
@@ -85,9 +86,10 @@ globals.forEach(function (name) {
   global[name] = tman[name]
 })
 global.tman = tman
+
 if (!tman.env.TEST) tman.env.TEST = 'root'
-tman.rootSuite.exit = program.exit
-if (!process.env.npm_execpath) { // can't exit when run in npm script
+if (!process.env.npm_execpath) {
+  // can't exit when runing with npm. https://github.com/npm/npm/issues/4603
   process.once('SIGINT', function () {
     tman.abort()
     // force to exit in 3 seconds.
@@ -154,9 +156,7 @@ function fsStat (filePath) {
   return 0
 }
 
-/**
- * Parse list.
- */
+// Parse list.
 function parseList (str) {
   return str.replace(/\W/g, ' ').trim().split(/ +/)
 }
