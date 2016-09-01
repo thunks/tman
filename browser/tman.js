@@ -152,21 +152,21 @@ var thunk = thunks()
 function Suite (title, parent, mode) {
   this.title = title
   this.parent = parent
-  this.root = this
-  while (this.root.parent) this.root = this.root.parent
+  this.root = parent ? parent.root : this
 
   this.mode = mode // 'skip', 'only', 'hasOnly'
   this.duration = -1
   this.startTime = 0
   this.endTime = 0
-  this.before = null
-  this.after = null
-  this.beforeEach = null
-  this.afterEach = null
   this.children = []
   this.ctxMachine = this
-  this.depth = parent ? (parent.depth + 1) : 0
   this.state = null // skip: null, passed: true, failed: error
+  this.cleanHandle = null
+  this.depth = parent ? (parent.depth + 1) : 0
+  this.before = new Hooks('before', this)
+  this.after = new Hooks('after', this)
+  this.beforeEach = new Hooks('beforeEach', this)
+  this.afterEach = new Hooks('afterEach', this)
 }
 
 Suite.prototype.log = null
@@ -178,16 +178,16 @@ Suite.prototype.onFinish = function () {}
 Suite.prototype.inspect = function () {
   return {
     title: this.title,
-    parent: this.parent && '<Suite: ' + this.parent.title + '>',
     mode: this.mode,
-    duration: this.getDuration(),
+    depth: this.depth,
     startTime: this.startTime,
     endTime: this.endTime,
-    before: this.before && '<Hook: ' + this.before.constructor.name + '>',
-    after: this.after && '<Hook: ' + this.after.constructor.name + '>',
-    beforeEach: this.beforeEach && '<Hook: ' + this.beforeEach.constructor.name + '>',
-    afterEach: this.afterEach && '<Hook: ' + this.afterEach.constructor.name + '>',
-    depth: this.depth,
+    before: this.before.inspect(),
+    after: this.after.inspect(),
+    beforeEach: this.beforeEach.inspect(),
+    afterEach: this.afterEach.inspect(),
+    duration: this.getDuration(),
+    parent: this.parent && '<Suite: ' + this.parent.title + '>',
     children: this.children.map(function (test) {
       return '<' + test.constructor.name + ': ' + test.title + '>'
     })
@@ -201,11 +201,15 @@ Suite.prototype.toJSON = function () {
     depth: this.depth,
     startTime: this.startTime,
     endTime: this.endTime,
+    before: this.before.toJSON(),
+    after: this.after.toJSON(),
+    beforeEach: this.beforeEach.toJSON(),
+    afterEach: this.afterEach.toJSON(),
     children: this.children.map(function (test) { return test.toJSON() })
   }
 }
 
-Suite.prototype.pushSuite = function (title, fn, mode) {
+Suite.prototype.addSuite = function (title, fn, mode) {
   var ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
@@ -217,7 +221,7 @@ Suite.prototype.pushSuite = function (title, fn, mode) {
   this.ctxMachine = ctx
 }
 
-Suite.prototype.pushTest = function (title, fn, mode) {
+Suite.prototype.addTest = function (title, fn, mode) {
   var ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
@@ -226,32 +230,28 @@ Suite.prototype.pushTest = function (title, fn, mode) {
   ctx.children.push(test)
 }
 
-Suite.prototype.pushBefore = function (fn) {
+Suite.prototype.addBefore = function (fn) {
   var ctx = this.ctxMachine
   assertFn(fn, ctx)
-  assertHook('before', ctx)
-  ctx.before = fn
+  ctx.before.add(fn)
 }
 
-Suite.prototype.pushAfter = function (fn) {
+Suite.prototype.addAfter = function (fn) {
   var ctx = this.ctxMachine
   assertFn(fn, ctx)
-  assertHook('after', ctx)
-  ctx.after = fn
+  ctx.after.add(fn)
 }
 
-Suite.prototype.pushBeforeEach = function (fn) {
+Suite.prototype.addBeforeEach = function (fn) {
   var ctx = this.ctxMachine
   assertFn(fn, ctx)
-  assertHook('beforeEach', ctx)
-  ctx.beforeEach = fn
+  ctx.beforeEach.add(fn)
 }
 
-Suite.prototype.pushAfterEach = function (fn) {
+Suite.prototype.addAfterEach = function (fn) {
   var ctx = this.ctxMachine
   assertFn(fn, ctx)
-  assertHook('afterEach', ctx)
-  ctx.afterEach = fn
+  ctx.afterEach.add(fn)
 }
 
 Suite.prototype.setOnly = function () {
@@ -307,16 +307,16 @@ Suite.prototype.toThunk = function () {
       })(done)
     }
 
-    function suiteFinish (err) {
-      suiteFinish.called = true
-      clearTimeout(ctx.timer)
-      ctx.root.pendingCallback = null
+    ctx.cleanHandle = clearSuite
+    function clearSuite (err) {
+      clearSuite.called = true
+      ctx.root.callbackMachine = null
       if (err == null) ctx.state = true
       else {
         ctx.state = err
         ctx.root.errors.push(err)
         err.order = ctx.root.errors.length
-        err.title = ctx.fullTitle() + (err.title || suiteFinish.hookTitle || '')
+        err.title = ctx.fullTitle() + ' ' + (err.title || clearSuite.hookTitle || '')
       }
       ctx.endTime = Date.now()
       ctx.onFinish()
@@ -324,29 +324,69 @@ Suite.prototype.toThunk = function () {
     }
 
     var tasks = []
-    if (ctx.before) tasks.push(thunkHook(ctx.before, suiteFinish, ctx, ' "before" hook'))
+    tasks.push(ctx.before)
     ctx.children.forEach(function (test) {
       if (hasOnly && test.mode !== 'hasOnly' && !test.isOnly()) return
-      if (ctx.beforeEach) {
-        tasks.push(thunkHook(ctx.beforeEach, suiteFinish, ctx, ' "beforeEach" hook'))
-      }
-      tasks.push(test)
-      if (ctx.afterEach) {
-        tasks.push(thunkHook(ctx.afterEach, suiteFinish, ctx, ' "afterEach" hook'))
-      }
+      tasks.push(ctx.beforeEach, test, ctx.afterEach)
     })
-    if (ctx.after) tasks.push(thunkHook(ctx.after, suiteFinish, ctx, ' "after" hook'))
-
+    tasks.push(ctx.after)
     ctx.startTime = Date.now()
-    thunk.seq(tasks)(suiteFinish)
+    thunk.seq(tasks)(clearSuite)
+  }
+}
+
+function Hooks (title, parent) {
+  this.title = title
+  this.parent = parent
+  this.hooks = []
+}
+
+Hooks.prototype.add = function (fn) {
+  this.hooks.push(fn)
+}
+
+/* istanbul ignore next */
+Hooks.prototype.inspect = function () {
+  return {
+    title: this.title,
+    hooks: this.hooks.map(function (hook) {
+      return '<' + hook.constructor.name + '>'
+    })
+  }
+}
+
+Hooks.prototype.toJSON = function () {
+  return {
+    title: this.title,
+    hooks: this.hooks
+  }
+}
+
+Hooks.prototype.toThunk = function () {
+  var ctx = this
+  var suite = ctx.parent
+
+  return function (done) {
+    if (!ctx.hooks.length) return done()
+    var title = '"' + ctx.title + '" Hook'
+    suite.cleanHandle.hookTitle = title
+    suite.root.callbackMachine = suite.cleanHandle
+    var hooks = ctx.hooks.map(function (hook) {
+      return toThunkableFn(hook, suite)
+    })
+    thunk.seq.call(suite, hooks)(function (err) {
+      if (err != null) {
+        err.title = title
+        throw err
+      }
+    })(done)
   }
 }
 
 function Test (title, parent, fn, mode) {
   this.title = title
   this.parent = parent
-  this.root = parent
-  while (this.root.parent) this.root = this.root.parent
+  this.root = parent.root
 
   this.fn = fn
   this.mode = mode // 'skip', 'only'
@@ -354,8 +394,9 @@ function Test (title, parent, fn, mode) {
   this.startTime = 0
   this.endTime = 0
   this.timer = null
-  this.depth = parent.depth + 1
   this.state = null // skip: null, passed: true, failed: error
+  this.cleanHandle = null
+  this.depth = parent.depth + 1
 }
 /* istanbul ignore next */
 Test.prototype.onStart = function () {}
@@ -365,14 +406,14 @@ Test.prototype.onFinish = function () {}
 Test.prototype.inspect = function () {
   return {
     title: this.title,
-    parent: this.parent && '<Suite: ' + this.parent.title + '>',
-    depth: this.depth,
     mode: this.mode,
-    duration: this.getDuration(),
+    depth: this.depth,
     startTime: this.startTime,
     endTime: this.endTime,
     state: this.state,
-    fn: this.fn && '<Test: ' + this.fn.constructor.name + '>'
+    duration: this.getDuration(),
+    fn: this.fn && '<Test: ' + this.fn.constructor.name + '>',
+    parent: this.parent && '<Suite: ' + this.parent.title + '>'
   }
 }
 
@@ -418,10 +459,11 @@ Test.prototype.toThunk = function () {
       return done()
     }
 
-    function testFinish (err) {
-      testFinish.called = true
+    ctx.cleanHandle = clearTest
+    function clearTest (err) {
+      clearTest.called = true
       clearTimeout(ctx.timer)
-      ctx.root.pendingCallback = null
+      ctx.root.callbackMachine = null
       if (err == null) {
         ctx.state = true
         ctx.root.passed++
@@ -437,11 +479,9 @@ Test.prototype.toThunk = function () {
     }
 
     ctx.startTime = Date.now()
-    ctx.root.pendingCallback = testFinish
-    thunk.race([
-      function (callback) {
-        thunk.call(ctx, thunks.isThunkableFn(ctx.fn) ? ctx.fn : ctx.fn())(callback)
-      },
+    ctx.root.callbackMachine = clearTest
+    thunk.race.call(ctx, [
+      toThunkableFn(ctx.fn, ctx),
       function (callback) {
         thunk.delay()(function () {
           var duration = ctx.getDuration()
@@ -451,40 +491,7 @@ Test.prototype.toThunk = function () {
           }, duration)
         })
       }
-    ])(testFinish)
-  }
-}
-
-function assertHook (hook, ctx) {
-  if (ctx[hook]) {
-    throw new Error('"' + hook + '" hook exist in "' + ctx.fullTitle() + '"')
-  }
-}
-
-function assertFn (fn, ctx) {
-  if (typeof fn !== 'function') {
-    throw new Error(String(fn) + ' is not function in "' + ctx.fullTitle() + '"')
-  }
-}
-
-function assertStr (str, ctx) {
-  if (!str || typeof str !== 'string') {
-    throw new Error(String(str) + ' is invalid string in "' + ctx.fullTitle() + '"')
-  }
-}
-
-function thunkHook (fn, suiteFinish, ctx, title) {
-  return function (done) {
-    suiteFinish.hookTitle = title
-    ctx.root.pendingCallback = suiteFinish
-    thunk.call(ctx)(function () {
-      return thunks.isThunkableFn(fn) ? fn : fn.call(this)
-    })(function (err) {
-      if (err != null) {
-        err.title = title
-        throw err
-      }
-    })(done)
+    ])(clearTest)
   }
 }
 
@@ -499,7 +506,7 @@ exports.Tman = function (env) {
   rootSuite.passed = 0
   rootSuite.ignored = 0
   rootSuite.errors = []
-  rootSuite.pendingCallback = null
+  rootSuite.callbackMachine = null
   rootSuite.timeout(2000)
 
   tm.only = _tman('only')
@@ -511,45 +518,45 @@ exports.Tman = function (env) {
         fn = title
         title = 'T-man'
       }
-      rootSuite.pushSuite(title, fn, mode)
+      rootSuite.addSuite(title, fn, mode)
       tm.tryRun(10)
     }
   }
 
   tm.describe = tm.suite = function (title, fn) {
-    rootSuite.pushSuite(title, fn, '')
+    rootSuite.addSuite(title, fn, '')
   }
   tm.suite.only = function (title, fn) {
-    rootSuite.pushSuite(title, fn, 'only')
+    rootSuite.addSuite(title, fn, 'only')
   }
   tm.suite.skip = function (title, fn) {
-    rootSuite.pushSuite(title, fn, 'skip')
+    rootSuite.addSuite(title, fn, 'skip')
   }
 
   tm.it = tm.test = function (title, fn) {
-    rootSuite.pushTest(title, fn, '')
+    rootSuite.addTest(title, fn, '')
   }
   tm.test.only = function (title, fn) {
-    rootSuite.pushTest(title, fn, 'only')
+    rootSuite.addTest(title, fn, 'only')
   }
   tm.test.skip = function (title, fn) {
-    rootSuite.pushTest(title, fn, 'skip')
+    rootSuite.addTest(title, fn, 'skip')
   }
 
   tm.before = function (fn) {
-    rootSuite.pushBefore(fn)
+    rootSuite.addBefore(fn)
   }
 
   tm.after = function (fn) {
-    rootSuite.pushAfter(fn)
+    rootSuite.addAfter(fn)
   }
 
   tm.beforeEach = function (fn) {
-    rootSuite.pushBeforeEach(fn)
+    rootSuite.addBeforeEach(fn)
   }
 
   tm.afterEach = function (fn) {
-    rootSuite.pushAfterEach(fn)
+    rootSuite.addAfterEach(fn)
   }
 
   tm.abort = function () {
@@ -588,7 +595,7 @@ exports.Tman = function (env) {
     }
 
     function uncaught (err) {
-      var uncaughtHandle = rootSuite.pendingCallback || endTest
+      var uncaughtHandle = rootSuite.callbackMachine || endTest
       err = err || new Error('uncaught exception')
       err.name = 'UncaughtError'
       if (uncaughtHandle.called) rootSuite.log(err)
@@ -610,6 +617,23 @@ exports.Tman = function (env) {
   }
 
   return tm
+}
+
+function assertFn (fn, ctx) {
+  if (typeof fn !== 'function') {
+    throw new Error(String(fn) + ' is not function in "' + ctx.fullTitle() + '"')
+  }
+}
+
+function assertStr (str, ctx) {
+  if (!str || typeof str !== 'string') {
+    throw new Error(String(str) + ' is invalid string in "' + ctx.fullTitle() + '"')
+  }
+}
+
+function toThunkableFn (fn, ctx) {
+  if (thunks.isThunkableFn(fn)) return fn
+  return function (done) { thunk(fn.call(ctx))(done) }
 }
 
 }).call(this,require('_process'))
@@ -1026,7 +1050,7 @@ exports.Tman = function (env) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"

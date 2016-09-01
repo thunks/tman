@@ -209,6 +209,11 @@ tman.suite('Hooks', function () {
       assert.strictEqual(count++, 11)
     })
 
+    t.after(function (done) {
+      assert.strictEqual(count++, 12)
+      done()
+    })
+
     t.beforeEach(function () {
       count++
     })
@@ -249,10 +254,12 @@ tman.suite('Hooks', function () {
     t.before(function () {
       t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
+      assert.strictEqual(this, t.rootSuite)
     })
 
     t.after(function () {
-      assert.strictEqual(count++, 15)
+      assert.strictEqual(count++, 18)
+      assert.strictEqual(this, t.rootSuite)
     })
 
     t.it('test 1-1', function () {
@@ -260,43 +267,55 @@ tman.suite('Hooks', function () {
     })
 
     t.suite('suite 1-1', function () {
+      var suite = this
+
       t.before(function () {
         assert.strictEqual(count++, 2)
+        assert.strictEqual(this, suite)
       })
 
       t.after(function () {
-        assert.strictEqual(count++, 13)
+        assert.strictEqual(count++, 16)
+        assert.strictEqual(this, suite)
       })
 
       t.beforeEach(function () {
         count++
+        assert.strictEqual(this, suite)
+      })
+
+      t.beforeEach(function (done) {
+        count++
+        assert.strictEqual(this, suite)
+        done()
       })
 
       t.afterEach(function () {
         count++
+        assert.strictEqual(this, suite)
       })
 
       t.it('test 2-1', function () {
-        assert.strictEqual(count++, 4)
+        assert.strictEqual(count++, 5)
       })
 
       t.it('test 2-2', function () {
-        assert.strictEqual(count++, 7)
+        assert.strictEqual(count++, 9)
       })
 
       t.suite('suite 2-1', function () {
         t.it('test 3-1', function () {
-          assert.strictEqual(count++, 10)
+          assert.strictEqual(count++, 13)
         })
 
         t.it('test 3-2', function () {
-          assert.strictEqual(count++, 11)
+          assert.strictEqual(count++, 14)
         })
       })
     })
 
     t.it('test 1-2', function () {
-      assert.strictEqual(count++, 14)
+      assert.strictEqual(count++, 17)
     })
 
     return t.run(collectResult)
@@ -320,26 +339,6 @@ tman.suite('Hooks', function () {
     assert.throws(function () {
       t.afterEach(new Date())
     }, /not function/)
-
-    t.before(function () {})
-    assert.throws(function () {
-      t.before(function () {})
-    }, /hook exist/)
-
-    t.after(function () {})
-    assert.throws(function () {
-      t.after(function () {})
-    }, /hook exist/)
-
-    t.beforeEach(function () {})
-    assert.throws(function () {
-      t.beforeEach(function () {})
-    }, /hook exist/)
-
-    t.afterEach(function () {})
-    assert.throws(function () {
-      t.afterEach(function () {})
-    }, /hook exist/)
   })
 
   tman.it('work with ES2015', function () {

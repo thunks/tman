@@ -86,8 +86,8 @@ export class Test {
   title: string;
   parent: Suite;
   constructor(title: string, parent: Suite, mode: 'only' | 'skip' | '');
-  start(): void;
-  finish(): void;
+  onStart(): void;
+  onFinish(): void;
   fullTitle(): string;
   timeout(duration: number): void;
   toJSON(): TestResult;
@@ -97,8 +97,8 @@ export class Suite {
   title: string;
   parent: Suite;
   constructor(title: string, parent: Suite, fn: TestAction, mode: 'only' | 'skip' | '');
-  start(): void;
-  finish(): void;
+  onStart(): void;
+  onFinish(): void;
   fullTitle(): string;
   timeout(duration: number): void;
   toJSON(): SuiteResult;

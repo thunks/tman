@@ -610,8 +610,8 @@ tman.suite('Timeouts and errors', function () {
 
       messages = messages.join('')
       assert.ok(messages.indexOf('test 1-1 with error (1)') > 0)
-      assert.ok(messages.indexOf('/suite 1-1 "before" hook (2)') > 0)
-      assert.ok(messages.indexOf('/suite 1-2 "afterEach" hook (3)') > 0)
+      assert.ok(messages.indexOf('/suite 1-1 "before" Hook (2)') > 0)
+      assert.ok(messages.indexOf('/suite 1-2 "afterEach" Hook (3)') > 0)
 
       assert.ok(res.errors[0] instanceof Error)
       assert.strictEqual(res.errors[0].order, 1)
@@ -619,11 +619,11 @@ tman.suite('Timeouts and errors', function () {
 
       assert.ok(res.errors[1] instanceof Error)
       assert.strictEqual(res.errors[1].order, 2)
-      assert.strictEqual(res.errors[1].title, '/suite 1-1 "before" hook')
+      assert.strictEqual(res.errors[1].title, '/suite 1-1 "before" Hook')
 
       assert.ok(res.errors[2] instanceof Error)
       assert.strictEqual(res.errors[2].order, 3)
-      assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" hook')
+      assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" Hook')
 
       tman.rootSuite.passed += res.passed
     })
@@ -706,8 +706,8 @@ tman.suite('Timeouts and errors', function () {
 
       messages = messages.join('')
       assert.ok(messages.indexOf('test 1-1 with error (1)') > 0)
-      assert.ok(messages.indexOf('/suite 1-1 "before" hook (2)') > 0)
-      assert.ok(messages.indexOf('/suite 1-2 "afterEach" hook (3)') > 0)
+      assert.ok(messages.indexOf('/suite 1-1 "before" Hook (2)') > 0)
+      assert.ok(messages.indexOf('/suite 1-2 "afterEach" Hook (3)') > 0)
 
       assert.ok(res.errors[0] instanceof Error)
       assert.strictEqual(res.errors[0].order, 1)
@@ -715,11 +715,11 @@ tman.suite('Timeouts and errors', function () {
 
       assert.ok(res.errors[1] instanceof Error)
       assert.strictEqual(res.errors[1].order, 2)
-      assert.strictEqual(res.errors[1].title, '/suite 1-1 "before" hook')
+      assert.strictEqual(res.errors[1].title, '/suite 1-1 "before" Hook')
 
       assert.ok(res.errors[2] instanceof Error)
       assert.strictEqual(res.errors[2].order, 3)
-      assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" hook')
+      assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" Hook')
 
       tman.rootSuite.passed += res.passed
     })
