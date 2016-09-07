@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global tman */
+/* global tman */
 
 var count = 0
 var assert = {
@@ -23,7 +23,7 @@ tman.before(function () {
 })
 
 tman.after(function () {
-  assert.strictEqual(count++, 25)
+  assert.strictEqual(count++, 24)
   console.log('End practical tests')
 })
 
@@ -88,20 +88,20 @@ tman.suite('suite level 1-1', function () {
 
     tman.suite('suite level 3-2', function () {
       tman.before(function () {
-        assert.strictEqual(count++, 16)
+        assert.strictEqual(count++, 15)
       })
 
       tman.after(function () {
-        assert.strictEqual(count++, 20)
+        assert.strictEqual(count++, 19)
       })
 
       tman.it('test level 4-1', function * () {
-        assert.strictEqual(count++, 17)
+        assert.strictEqual(count++, 16)
         yield delay(100)
       })
 
       tman.it('test level 4-2', function () {
-        assert.strictEqual(count++, 18)
+        assert.strictEqual(count++, 17)
       })
 
       tman.it.skip('test level 4-3', function () {
@@ -109,23 +109,23 @@ tman.suite('suite level 1-1', function () {
       })
 
       tman.it('test level 4-4', function () {
-        assert.strictEqual(count++, 19)
+        assert.strictEqual(count++, 18)
       })
     })
   })
 })
 
 tman.it('test level 1-1', function * () {
-  assert.strictEqual(count++, 22)
+  assert.strictEqual(count++, 21)
   yield delay(100)
 })
 
 tman.it('test level 1-2', function () {
-  assert.strictEqual(count++, 23)
+  assert.strictEqual(count++, 22)
 })
 
 tman.it('test level 1-3', function () {
-  assert.strictEqual(count++, 24)
+  assert.strictEqual(count++, 23)
 })
 
 tman.run()

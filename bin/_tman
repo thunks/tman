@@ -26,6 +26,8 @@ program
   .option('-c, --color', 'force enabling of colors')
   .option('-C, --no-color', 'force disabling of colors')
   .option('-d, --debug', "enable node's debugger, synonym for node --debug")
+  .option('-e, --exclude <pattern>', 'exclude tests matching <pattern>')
+  .option('-g, --grep <pattern>', 'run tests matching <pattern>')
   .option('-gc, --expose-gc', 'expose gc extension')
   .option('-r, --require <name>', 'require the given module')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
@@ -34,6 +36,7 @@ program
   .option('--globals <names>', 'allow the given comma-delimited global [names]')
   .option('--harmony<_classes,_generators,...>', 'all node --harmony* flags are available')
   .option('--icu-data-dir', 'include ICU data')
+  .option('--mocha', 'mocha compatible mode')
   .option('--no-sort', 'don\'t sort test files')
   .option('--no-timeout', 'disables timeouts, given implicitly with --debug')
   .option('--no-exit',
@@ -64,6 +67,12 @@ program.on('globals', function (val) {
 if (!process.env.LOADED_TMAN_OPTS) getOptions()
 // parse args
 program.parse(process.argv)
+// --exclude <pattern>
+if (program.exclude) tman.exclude(program.exclude)
+// --grep <pattern>
+if (program.grep) tman.grep(program.grep)
+// --mocha
+if (program.mocha) tman.mocha()
 // --no-exit
 tman.rootSuite.exit = program.exit
 // --timeout

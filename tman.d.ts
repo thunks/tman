@@ -54,6 +54,9 @@ interface Tman {
   after(test: TestAction): void;
   beforeEach(test: TestAction): void;
   afterEach(test: TestAction): void;
+  grep(pattern: string): void;
+  exclude(pattern: string): void;
+  mocha(): void;
   tryRun(delay: number): void;
   run(callback: Callback): thunk;
 }

@@ -35,6 +35,8 @@ Summary
     - `tman.it.only(title, fn)`
     - `tman.suite.skip(title, fn)`
     - `tman.it.skip(title, fn)`
+    - `tman.grep(pattern)`
+    - `tman.exclude(pattern)`
   - [Timeouts](#timeouts)
   - [Write tests in source code](#write-tests-in-source-code)
     - `tman(title, fn)`
@@ -42,6 +44,7 @@ Summary
     - `tman.skip(title, fn)`
   - [Run tests](#run-tests)
     - `tman.run([callback])`
+    - `tman.mocha()`
     - [T-man CLI](#t-man-cli)
     - [T-man Test mode](#t-man-test-mode)
 - [FAQ](#faq)
@@ -351,6 +354,12 @@ tman.suite('Array', function () {
 })
 ```
 
+#### tman.grep(pattern)
+Sets grep pattern and run tests matching pattern, same as `--grep <pattern>` CLI option.
+
+#### tman.exclude(pattern)
+Sets exclude pattern and exclude tests matching pattern, same as `--exclude <pattern>` CLI option.
+
 ### Timeouts
 Default timeout is `2000ms`.
 
@@ -427,6 +436,9 @@ tman.run()
 
 **If you run tests with CLI, you will not need to use `tman.run`,** the `tman` command will run tests automatically.
 
+#### tman.mocha()
+Enable mocha compatible mode, same as `--mocha` CLI option.
+
 #### T-man CLI
 
 ```sh
@@ -441,6 +453,8 @@ Usage: tman [debug] [options] [files]
     -c, --color                          force enabling of colors
     -C, --no-color                       force disabling of colors
     -d, --debug                          enable node\'s debugger, synonym for node --debug
+    -e, --exclude <pattern>              exclude tests matching <pattern>
+    -g, --grep <pattern>                 run tests matching <pattern>
     -gc, --expose-gc                     expose gc extension
     -r, --require <name>                 require the given module
     -t, --timeout <ms>                   set test-case timeout in milliseconds [2000]
@@ -449,6 +463,7 @@ Usage: tman [debug] [options] [files]
     --globals <names>                    allow the given comma-delimited global [names]
     --harmony<_classes,_generators,...>  all node --harmony* flags are available
     --icu-data-dir                       include ICU data
+    --mocha                              Mocha compatible mode
     --no-sort                            don\'t sort test files
     --no-timeout                         disables timeouts, given implicitly with --debug
     --no-exit                            require a clean shutdown of the event loop: T-man will not call process.exit

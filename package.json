@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -31,7 +31,7 @@
     "mocha"
   ],
   "engines": {
-    "node": ">= 0.10"
+    "node": ">=0.10"
   },
   "license": "MIT",
   "bugs": {

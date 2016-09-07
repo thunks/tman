@@ -24,7 +24,7 @@ tman(function () {
   })
 
   tman.after(function () {
-    assert.strictEqual(atomicCount(), 25)
+    assert.strictEqual(atomicCount(), 24)
   })
 
   tman.suite('suite level 1-1', function () {
@@ -88,20 +88,20 @@ tman(function () {
 
       tman.suite('suite level 3-2', function () {
         tman.before(function () {
-          assert.strictEqual(atomicCount(), 16)
+          assert.strictEqual(atomicCount(), 15)
         })
 
         tman.after(function () {
-          assert.strictEqual(atomicCount(), 20)
+          assert.strictEqual(atomicCount(), 19)
         })
 
         tman.it('test level 4-1', function * () {
-          assert.strictEqual(atomicCount(), 17)
+          assert.strictEqual(atomicCount(), 16)
           yield thunk.delay(100)
         })
 
         tman.it('test level 4-2', function () {
-          assert.strictEqual(atomicCount(), 18)
+          assert.strictEqual(atomicCount(), 17)
         })
 
         tman.it.skip('test level 4-3', function () {
@@ -109,22 +109,22 @@ tman(function () {
         })
 
         tman.it('test level 4-4', function () {
-          assert.strictEqual(atomicCount(), 19)
+          assert.strictEqual(atomicCount(), 18)
         })
       })
     })
   })
 
   tman.it('test level 1-1', function * () {
-    assert.strictEqual(atomicCount(), 22)
+    assert.strictEqual(atomicCount(), 21)
     yield thunk.delay(100)
   })
 
   tman.it('test level 1-2', function () {
-    assert.strictEqual(atomicCount(), 23)
+    assert.strictEqual(atomicCount(), 22)
   })
 
   tman.it('test level 1-3', function () {
-    assert.strictEqual(atomicCount(), 24)
+    assert.strictEqual(atomicCount(), 23)
   })
 })
