@@ -169,6 +169,20 @@ function Suite (title, parent, mode) {
   this.afterEach = new Hooks('afterEach', this)
 }
 
+Suite.prototype.reset = function () {
+  this.startTime = 0
+  this.endTime = 0
+  this.children.length = 0
+  this.ctxMachine = this
+  this.state = null
+  this.cleanHandle = null
+  this.before.hooks.length = 0
+  this.after.hooks.length = 0
+  this.beforeEach.hooks.length = 0
+  this.afterEach.hooks.length = 0
+  return this
+}
+
 Suite.prototype.log = null
 /* istanbul ignore next */
 Suite.prototype.onStart = function () {}
@@ -219,6 +233,7 @@ Suite.prototype.addSuite = function (title, fn, mode) {
   this.ctxMachine = suite
   fn.call(suite)
   this.ctxMachine = ctx
+  return suite
 }
 
 Suite.prototype.addTest = function (title, fn, mode) {
@@ -228,6 +243,7 @@ Suite.prototype.addTest = function (title, fn, mode) {
   var test = new Test(title, ctx, fn, mode)
   if (mode === 'only' && !ctx.isSkip()) ctx.setOnly()
   ctx.children.push(test)
+  return test
 }
 
 Suite.prototype.addBefore = function (fn) {
@@ -525,16 +541,11 @@ exports.Test = Test
 exports.Tman = function (env) {
   var tm = _tman('')
   var rootSuite = tm.rootSuite = new Suite('root', null, '')
-  rootSuite.no_timeout = false
   rootSuite.exit = true
-  rootSuite.abort = false
   rootSuite.grep = /.*/
   rootSuite.exclude = /.{-1}/
-  rootSuite.passed = 0
-  rootSuite.ignored = 0
-  rootSuite.errors = []
-  rootSuite.callbackMachine = null
   rootSuite.timeout(2000)
+  rootSuite.no_timeout = false
 
   tm.only = _tman('only')
   tm.skip = _tman('skip')
@@ -545,29 +556,30 @@ exports.Tman = function (env) {
         fn = title
         title = 'T-man'
       }
-      rootSuite.addSuite(title, fn, mode)
+      var suite = rootSuite.addSuite(title, fn, mode)
       tm.tryRun(10)
+      return suite
     }
   }
 
   tm.describe = tm.suite = function (title, fn) {
-    rootSuite.addSuite(title, fn, '')
+    return rootSuite.addSuite(title, fn, '')
   }
   tm.suite.only = function (title, fn) {
-    rootSuite.addSuite(title, fn, 'only')
+    return rootSuite.addSuite(title, fn, 'only')
   }
   tm.suite.skip = function (title, fn) {
-    rootSuite.addSuite(title, fn, 'skip')
+    return rootSuite.addSuite(title, fn, 'skip')
   }
 
   tm.it = tm.test = function (title, fn) {
-    rootSuite.addTest(title, fn, '')
+    return rootSuite.addTest(title, fn, '')
   }
   tm.test.only = function (title, fn) {
-    rootSuite.addTest(title, fn, 'only')
+    return rootSuite.addTest(title, fn, 'only')
   }
   tm.test.skip = function (title, fn) {
-    rootSuite.addTest(title, fn, 'skip')
+    return rootSuite.addTest(title, fn, 'skip')
   }
 
   tm.before = function (fn) {
@@ -598,8 +610,16 @@ exports.Tman = function (env) {
     rootSuite.mocha = true
   }
 
+  tm.reset = function () {
+    rootSuite.reset()
+  }
+
   tm.abort = function () {
     rootSuite.abort = true
+  }
+
+  tm.setExit = function (exit) {
+    rootSuite.exit = !!exit
   }
 
   tm.exit = function (code) {
@@ -621,6 +641,7 @@ exports.Tman = function (env) {
     if (running) throw new Error('T-man is running!')
 
     function endTest (err) {
+      running = false
       process.removeListener('uncaughtException', uncaught)
       endTest.called = true
       callback = callback || tm._afterRun
@@ -630,9 +651,11 @@ exports.Tman = function (env) {
       result.passed = rootSuite.passed
       result.ignored = rootSuite.ignored
       result.errors = rootSuite.errors.slice()
-      callback.call(tm, null, result)
+      return callback.call(tm, null, result)
     }
 
+    tm.uncaught = uncaught
+    process.on('uncaughtException', uncaught)
     function uncaught (err) {
       var uncaughtHandle = rootSuite.callbackMachine || endTest
       err = err || new Error('uncaught exception')
@@ -646,9 +669,8 @@ exports.Tman = function (env) {
     rootSuite.passed = 0
     rootSuite.ignored = 0
     rootSuite.errors = []
+    rootSuite.callbackMachine = null
 
-    tm.uncaught = uncaught
-    process.on('uncaughtException', uncaught)
     if (tm._beforeRun) tm._beforeRun()
     return thunk.delay.call(tm)(function () {
       return rootSuite
@@ -1096,12 +1118,13 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/tman.js",
+  "typings": "./tman.d.ts",
   "bin": {
     "tman": "./bin/tman",
     "_tman": "./bin/_tman"

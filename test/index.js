@@ -3,6 +3,7 @@
 //
 // **License:** MIT
 
+var path = require('path')
 var assert = require('assert')
 var slice = Array.prototype.slice
 
@@ -13,6 +14,8 @@ var supportES2015 = false
 try { // 检测是否支持 generator，是则加载 generator 测试
   supportES2015 = new Function('return function* (){}') // eslint-disable-line
 } catch (e) {}
+
+assert.strictEqual(tman.baseDir, path.join(process.cwd(), 'test'))
 
 tman.afterEach(function () {
   tman.rootSuite.log('')

@@ -74,7 +74,7 @@ if (program.grep) tman.grep(program.grep)
 // --mocha
 if (program.mocha) tman.mocha()
 // --no-exit
-tman.rootSuite.exit = program.exit
+tman.setExit(program.exit)
 // --timeout
 if (program.timeout === false) {
   tman.rootSuite.no_timeout = true
@@ -129,11 +129,8 @@ args.forEach(function (arg) {
   files.push.apply(files, result)
 })
 
-sortFiles(files)
 // load tests
-files.forEach(function (filePath) {
-  require(path.resolve(filePath))
-})
+tman.loadFiles(sortFiles(files))
 tman.tryRun()
 
 function sortFiles (list) {

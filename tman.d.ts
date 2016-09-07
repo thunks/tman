@@ -28,24 +28,24 @@ interface TestAction {
 }
 
 interface SuiteFn {
-  (title: string, fn: SuiteAction): void;
-  only(title: string, fn: SuiteAction): void;
-  skip(title: string, fn: SuiteAction): void;
+  (title: string, fn: SuiteAction): Suite;
+  only(title: string, fn: SuiteAction): Suite;
+  skip(title: string, fn: SuiteAction): Suite;
 }
 
 interface TestFn {
-  (title: string, fn: TestAction): void;
-  only(title: string, fn: TestAction): void;
-  skip(title: string, fn: TestAction): void;
+  (title: string, fn: TestAction): Test;
+  only(title: string, fn: TestAction): Test;
+  skip(title: string, fn: TestAction): Test;
 }
 
 interface Tman {
-  (suite: SuiteAction): void;
-  (title: string, suite: SuiteAction): void;
-  only(suite: SuiteAction): void;
-  skip(suite: SuiteAction): void;
-  only(title: string, fn: SuiteAction): void;
-  skip(title: string, fn: SuiteAction): void;
+  (suite: SuiteAction): Suite;
+  (title: string, suite: SuiteAction): Suite;
+  only(suite: SuiteAction): Suite;
+  skip(suite: SuiteAction): Suite;
+  only(title: string, fn: SuiteAction): Suite;
+  skip(title: string, fn: SuiteAction): Suite;
   suite: SuiteFn;
   describe: SuiteFn;
   test: TestFn;
@@ -57,6 +57,8 @@ interface Tman {
   grep(pattern: string): void;
   exclude(pattern: string): void;
   mocha(): void;
+  reset(): void;
+  setExit(boolean): void;
   tryRun(delay: number): void;
   run(callback: Callback): thunk;
 }
@@ -84,7 +86,9 @@ export default tman;
 export const NAME: string;
 export const VERSION: string;
 export const TEST: string;
+export var baseDir: string;
 export function createTman (): Tman;
+export function loadFiles(files: string | Array<string>): void;
 export class Test {
   title: string;
   parent: Suite;
@@ -100,6 +104,7 @@ export class Suite {
   title: string;
   parent: Suite;
   constructor(title: string, parent: Suite, fn: TestAction, mode: 'only' | 'skip' | '');
+  reset(): Suite;
   onStart(): void;
   onFinish(): void;
   fullTitle(): string;

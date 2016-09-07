@@ -3,12 +3,15 @@
 //
 // **License:** MIT
 
+var path = require('path')
 var assert = require('assert')
 var thunk = require('thunks')()
 var slice = Array.prototype.slice
 
 var tman = require('..')
 var format = tman.format
+
+assert.strictEqual(tman.baseDir, path.join(process.cwd(), 'test'))
 
 tman.suite('Exclusive or inclusive tests', function () {
   tman.it('"skip" test', function () {
@@ -979,6 +982,106 @@ tman.suite('mocha compatible mode', function () {
       assert.strictEqual(res.passed, 10)
       assert.strictEqual(res.ignored, 1)
       tman.rootSuite.passed += res.passed
+    })
+  })
+})
+
+tman.suite('reset', function () {
+  tman.it('suite.reset', function () {
+    var count = 0
+    var t = tman.createTman()
+
+    t.before(function () {
+      assert.strictEqual(count++, 0)
+    })
+
+    t.after(function () {
+      assert.strictEqual(count++, 2)
+    })
+
+    var suite = t.suite('suite', function () {
+      t.before(function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.it('test 1', function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.it('test 2', function () {
+        assert.strictEqual(true, false)
+      })
+    })
+
+    t.it('test', function () {
+      assert.strictEqual(count++, 1)
+    })
+
+    assert.strictEqual(t.rootSuite.children[0], suite)
+    assert.strictEqual(suite.before.hooks.length, 1)
+    assert.strictEqual(suite.after.hooks.length, 0)
+    assert.strictEqual(suite.beforeEach.hooks.length, 0)
+    assert.strictEqual(suite.afterEach.hooks.length, 0)
+    assert.strictEqual(suite.children.length, 2)
+
+    suite.reset()
+    assert.strictEqual(suite.before.hooks.length, 0)
+    assert.strictEqual(suite.children.length, 0)
+
+    return t.run(function (err, res) {
+      if (err) throw err
+      assert.strictEqual(res.passed, 1)
+      assert.strictEqual(res.ignored, 0)
+      tman.rootSuite.passed += res.passed
+    })
+  })
+
+  tman.it('tman.reset', function () {
+    var t = tman.createTman()
+
+    t.before(function () {
+      assert.strictEqual(true, false)
+    })
+
+    t.after(function () {
+      assert.strictEqual(true, false)
+    })
+
+    t.suite('suite', function () {
+      t.before(function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.it('test 1', function () {
+        assert.strictEqual(true, false)
+      })
+
+      t.it('test 2', function () {
+        assert.strictEqual(true, false)
+      })
+    })
+
+    t.it('test', function () {
+      assert.strictEqual(true, false)
+    })
+
+    t.reset()
+
+    return t.run(function (err, res) {
+      if (err) throw err
+      assert.strictEqual(res.passed, 0)
+      assert.strictEqual(res.ignored, 0)
+
+      t.it('test', function () {
+        assert.strictEqual(true, true)
+      })
+
+      return t.run(function (err, res) {
+        if (err) throw err
+        assert.strictEqual(res.passed, 1)
+        assert.strictEqual(res.ignored, 0)
+        tman.rootSuite.passed += res.passed
+      })
     })
   })
 })

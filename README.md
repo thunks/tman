@@ -439,6 +439,13 @@ tman.run()
 #### tman.mocha()
 Enable mocha compatible mode, same as `--mocha` CLI option.
 
+#### tman.reset()
+Clear all tests of tman instance.
+
+#### tman.loadFiles(filePath)
+#### tman.loadFiles([filePath])
+Load test files to tman, it will clear previous tests file that in `require.cache`.
+
 #### T-man CLI
 
 ```sh
