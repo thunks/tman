@@ -42,14 +42,14 @@ interface TestFn {
 interface Tman {
   (suite: SuiteAction): Suite;
   (title: string, suite: SuiteAction): Suite;
-  only(suite: SuiteAction): Suite;
-  skip(suite: SuiteAction): Suite;
-  only(title: string, fn: SuiteAction): Suite;
-  skip(title: string, fn: SuiteAction): Suite;
   suite: SuiteFn;
   describe: SuiteFn;
   test: TestFn;
   it: TestFn;
+  only(suite: SuiteAction): Suite;
+  skip(suite: SuiteAction): Suite;
+  only(title: string, fn: SuiteAction): Suite;
+  skip(title: string, fn: SuiteAction): Suite;
   before(test: TestAction): void;
   after(test: TestAction): void;
   beforeEach(test: TestAction): void;
@@ -90,14 +90,14 @@ export const TEST: string;
 export let baseDir: string;
 
 // method in Tman interface
-export function only(suite: SuiteAction): Suite;
-export function skip(suite: SuiteAction): Suite;
-export function only(title: string, fn: SuiteAction): Suite;
-export function skip(title: string, fn: SuiteAction): Suite;
 export const suite: SuiteFn;
 export const describe: SuiteFn;
 export const test: TestFn;
 export const it: TestFn;
+export function only(suite: SuiteAction): Suite;
+export function skip(suite: SuiteAction): Suite;
+export function only(title: string, fn: SuiteAction): Suite;
+export function skip(title: string, fn: SuiteAction): Suite;
 export function before(test: TestAction): void;
 export function after(test: TestAction): void;
 export function beforeEach(test: TestAction): void;
