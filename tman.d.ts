@@ -81,14 +81,39 @@ interface TestResult {
   state: Error | boolean;
 }
 
-declare const tman: Tman;
-export default tman;
+export default function (suite: SuiteAction): Suite;
+export default function (title: string, suite: SuiteAction): Suite;
+
 export const NAME: string;
 export const VERSION: string;
 export const TEST: string;
-export var baseDir: string;
+export let baseDir: string;
+
+// method in Tman interface
+export function only(suite: SuiteAction): Suite;
+export function skip(suite: SuiteAction): Suite;
+export function only(title: string, fn: SuiteAction): Suite;
+export function skip(title: string, fn: SuiteAction): Suite;
+export const suite: SuiteFn;
+export const describe: SuiteFn;
+export const test: TestFn;
+export const it: TestFn;
+export function before(test: TestAction): void;
+export function after(test: TestAction): void;
+export function beforeEach(test: TestAction): void;
+export function afterEach(test: TestAction): void;
+export function grep(pattern: string): void;
+export function exclude(pattern: string): void;
+export function mocha(): void;
+export function reset(): void;
+export function setExit(boolean): void;
+export function tryRun(delay: number): void;
+export function run(callback?: Callback): thunk;
+
+// extra method
 export function createTman (): Tman;
 export function loadFiles(files: string | Array<string>): void;
+
 export class Test {
   title: string;
   parent: Suite;
@@ -100,6 +125,7 @@ export class Test {
   toJSON(): TestResult;
   toThunk(): thunk;
 }
+
 export class Suite {
   title: string;
   parent: Suite;
