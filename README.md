@@ -49,7 +49,6 @@ Summary
     - [T-man Test mode](#t-man-test-mode)
 - [FAQ](#faq)
   - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
-  - [Why not mocha, tape, tap, ava?](#why-not-mocha-tape-tap-ava)
 - [License MIT](#license)
 
 ## Examples
@@ -499,22 +498,6 @@ Use `--require` option:
 2. `tman -r ts-node/register test/*.ts`
 
 [Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
-
-### Why not `mocha`, `tape`, `tap`, `ava`?
-Here is [Why not `mocha`, `tape`, `tap`?](https://github.com/sindresorhus/ava#why-not-mocha-tape-tap)
-
-> Mocha requires you to use implicit globals like `describe` and `it` with the default interface (which most people use). It's not very opinionated and executes tests serially without process isolation, making it slow.
-
-> Tape and tap are pretty good. AVA is highly inspired by their syntax. They too execute tests serially. Their default [TAP](https://testanything.org) output isn't very user-friendly though so you always end up using an external tap reporter.
-
-> In contrast AVA is highly opinionated and runs tests concurrently, with a separate process for each test file. Its default reporter is easy on the eyes and yet AVA still supports TAP output through a CLI flag.
-
-**My opinion on `ava`:**
-
-1. `ava` don't have `suite` layer to organize huge scale tests.
-2. Strange API such as `t.plan(count)`, `t.end()`, `test.serial`.
-3. We don't need built-in assertions.
-4. 300+ dependencies in production, how does it save my test time when CI?
 
 ### License
 T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.  

@@ -76,11 +76,8 @@ if (program.mocha) tman.mocha()
 // --no-exit
 tman.setExit(program.exit)
 // --timeout
-if (program.timeout === false) {
-  tman.rootSuite.no_timeout = true
-} else {
-  tman.rootSuite.timeout(parseInt(program.timeout, 10) || 2000)
-}
+if (program.timeout === false) tman.rootSuite.no_timeout = true
+else tman.rootSuite.timeout(parseInt(program.timeout, 10) || 2000)
 
 // requires
 requires.forEach(function (mod) { require(mod) })

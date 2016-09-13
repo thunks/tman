@@ -837,9 +837,9 @@ function parseRegExp (str) {
       if (isFunction(options.debug)) this.debug = options.debug
     }
   }
-  Scope.prototype.onerror = null
-  Scope.prototype.onstop = null
   Scope.prototype.debug = null
+  Scope.prototype.onstop = null
+  Scope.prototype.onerror = null
 
   function Link (result, callback) {
     this.next = null
@@ -901,15 +901,13 @@ function parseRegExp (str) {
       current.result = tryRun(domain.ctx, parent.callback, args)
       if (current.callback) {
         tickDepth = tickDepth || maxTickDepth
-        if (--tickDepth) return continuation(current, domain, tickDepth)
-        return nextTick(function () { continuation(current, domain, 0) })
-      }
-      if (current.result[0] != null) {
+        if (--tickDepth) continuation(current, domain, tickDepth)
+        else nextTick(function () { continuation(current, domain, 0) })
+      } else if (current.result[0] != null) {
         nextTick(function () {
           if (!current.result) return
-          if (scope.onerror) return scope.onerror(current.result[0])
-          /* istanbul ignore next */
-          noOp(current.result[0])
+          if (scope.onerror) scope.onerror(current.result[0])
+          else noOp(current.result[0])
         })
       }
     }
@@ -931,7 +929,7 @@ function parseRegExp (str) {
     }
     if (noTryRun) return thunk.call(ctx, callback)
     var err = tryRun(ctx, thunk, [callback])[0]
-    return err && callback(err)
+    if (err) callback(err)
   }
 
   function tryRun (ctx, fn, args) {
@@ -950,7 +948,9 @@ function parseRegExp (str) {
     if (isFunction(obj.toThunk)) return obj.toThunk()
     if (isFunction(obj.then)) return promiseToThunk(obj)
     if (isFunction(obj.toPromise)) return promiseToThunk(obj.toPromise())
-    if (thunkObj && (Array.isArray(obj) || isObject(obj))) return objectToThunk(obj, scope, thunkObj)
+    if (thunkObj && (Array.isArray(obj) || isObject(obj))) {
+      return objectToThunk(obj, scope, thunkObj)
+    }
     return obj
   }
 
@@ -958,9 +958,9 @@ function parseRegExp (str) {
     return function (callback) {
       var ctx = this
       var tickDepth = maxTickDepth
-      run()
+      runGenerator()
 
-      function run (err, res) {
+      function runGenerator (err, res) {
         if (scope.canceled) return
         if (err instanceof SigStop) return callback(err)
         var ret = err == null ? gen.next(res) : gen.throw(err)
@@ -974,7 +974,7 @@ function parseRegExp (str) {
 
       function next (err, res) {
         try {
-          run(err, arguments.length > 2 ? slice(arguments, 1) : res)
+          runGenerator(err, arguments.length > 2 ? slice(arguments, 1) : res)
         } catch (error) {
           callback(error)
         }
@@ -999,7 +999,7 @@ function parseRegExp (str) {
         var keys = Object.keys(obj)
         for (len = keys.length; i < len; i++) next(obj[keys[i]], keys[i])
       } else throw new Error('Not array or object')
-      return --pending || callback(null, result)
+      if (!--pending) callback(null, result)
 
       function next (fn, index) {
         if (finished) return
@@ -1011,7 +1011,7 @@ function parseRegExp (str) {
             return callback(err)
           }
           result[index] = arguments.length > 2 ? slice(arguments, 1) : res
-          return --pending || callback(null, result)
+          if (!--pending) callback(null, result)
         }, thunkObj, true)
       }
     }
@@ -1043,7 +1043,7 @@ function parseRegExp (str) {
 
   function promiseToThunk (promise) {
     return function (callback) {
-      return promise.then(function (res) {
+      promise.then(function (res) {
         callback(null, res)
       }, function (err) {
         if (err == null) err = new Error('unknown error: ' + err)
@@ -1107,16 +1107,12 @@ function parseRegExp (str) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.0'
+  thunks.VERSION = '4.7.1'
   thunks['default'] = thunks
   thunks.pruneErrorStack = true
   thunks.Scope = Scope
-  thunks.isGeneratorFn = function (fn) {
-    return isFunction(fn) && isGeneratorFn(fn)
-  }
-  thunks.isAsyncFn = function (fn) {
-    return isFunction(fn) && isAsyncFn(fn)
-  }
+  thunks.isGeneratorFn = function (fn) { return isFunction(fn) && isGeneratorFn(fn) }
+  thunks.isAsyncFn = function (fn) { return isFunction(fn) && isAsyncFn(fn) }
   thunks.isThunkableFn = function (fn) {
     return isFunction(fn) && (fn.length === 1 || isAsyncFn(fn) || isGeneratorFn(fn))
   }
@@ -1126,7 +1122,7 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1169,7 +1165,7 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.6",
     "supports-color": "^3.1.2",
-    "thunks": "^4.7.0"
+    "thunks": "^4.7.1"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
