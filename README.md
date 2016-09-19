@@ -47,6 +47,7 @@ Summary
     - `tman.mocha()`
     - [T-man CLI](#t-man-cli)
     - [T-man Test mode](#t-man-test-mode)
+- [TypeSript Typings](#typescript-typings)
 - [FAQ](#faq)
   - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
 - [License MIT](#license)
@@ -488,6 +489,13 @@ There are 3 ways to run with `test mode`:
 1. `tman example/test_in_source_code.js`
 2. `node example/test_in_source_code.js --test`
 3. `TEST=* node example/test_in_source_code.js`
+
+### TypeSript Typings
+
+```typescript
+import * as tman from 'tman'
+import { tman, suite, it, before, after, beforeEach, afterEach } from 'tman'
+```
 
 ### FAQ
 

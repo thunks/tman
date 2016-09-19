@@ -1,5 +1,5 @@
 test:
-	bin/tman
+	bin/tman 'test/*.js'
 	bin/tman test/cli/gc -gc
 	bin/tman test/cli/gc --expose-gc
 	bin/tman test/cli/global --globals suite,it,before,after
@@ -13,7 +13,7 @@ test:
 	node test/cli/test-in-src --test
 	TEST=* node test/cli/test-in-src
 	bin/tman -r coffee-script/register test/coffee
-	bin/tman -r ts-node/register test/ts
+	bin/tman -r ts-node/register test/typings.test.ts
 	open test/browser/index-error.html
 	sleep 2s
 	open test/browser/index.html

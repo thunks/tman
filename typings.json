@@ -1,8 +1,8 @@
 {
-  "ambientDevDependencies": {
-    "node": "registry:dt/node#4.0.0+20160412142033"
-  },
-  "devDependencies": {
-    "thunks": "npm:thunks/thunks.d.ts"
+  "name": "tman",
+  "dependencies": {},
+  "globalDevDependencies": {
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
+    "node": "registry:dt/node#6.0.0+20160915134512"
   }
 }

@@ -5,62 +5,81 @@
 */
 
 interface Callback {
-  (error: Error, res?: any): void;
+  (err?: Error): void;
 }
 
-interface thunkFn {
-  (callback: Callback): any;
+interface ThunkLikeFunction {
+  (fn: Callback): void;
 }
 
-interface thunk {
-  (callback: Callback): thunk;
+interface ThunkFunction {
+  (fn?: Callback): ThunkFunction;
+}
+
+interface GeneratorFunction extends Function {
+  (): Generator;
+}
+
+interface GeneratorFunctionConstructor {
+  new (...args: string[]): GeneratorFunction;
+  (...args: string[]): GeneratorFunction;
+  prototype: GeneratorFunction;
+}
+
+interface IteratorResult {
+  done: boolean;
+  value: any;
+}
+
+interface Generator {
+  constructor: GeneratorFunctionConstructor;
+  next(value?: any): IteratorResult;
+  throw(err?: Error): IteratorResult;
+  return(value?: any): IteratorResult;
+}
+
+interface AsyncFunction extends Function {
+  (): PromiseLike;
+}
+
+interface AsyncFunctionConstructor {
+  new (...args: string[]): AsyncFunction;
+  (...args: string[]): AsyncFunction;
+  prototype: AsyncFunction;
+}
+
+interface PromiseLike {
+  then(onfulfilled?: (value: any) => any, onrejected?: (reason: Error) => any): PromiseLike;
+}
+
+interface ToThunk {
+  toThunk(): ThunkLikeFunction;
+}
+
+interface ToPromise {
+  toPromise(): PromiseLike;
 }
 
 interface SuiteAction {
   (): void;
 }
 
-interface TestAction {
-  (): void;
-  (): PromiseLike<any>;
-  (): thunk;
-  (callback: Callback): void;
+interface OtherTestAction {
+  (): ThunkLikeFunction | PromiseLike | GeneratorFunction | AsyncFunction | Generator | ToThunk | ToPromise | void;
 }
 
+type TestAction = ThunkLikeFunction | GeneratorFunction | AsyncFunction | OtherTestAction;
+
 interface SuiteFn {
-  (title: string, fn: SuiteAction): Suite;
-  only(title: string, fn: SuiteAction): Suite;
-  skip(title: string, fn: SuiteAction): Suite;
+  (title: string, fn: SuiteAction): tman.Suite;
+  only(title: string, fn: SuiteAction): tman.Suite;
+  skip(title: string, fn: SuiteAction): tman.Suite;
 }
 
 interface TestFn {
-  (title: string, fn: TestAction): Test;
-  only(title: string, fn: TestAction): Test;
-  skip(title: string, fn: TestAction): Test;
-}
-
-interface Tman {
-  (suite: SuiteAction): Suite;
-  (title: string, suite: SuiteAction): Suite;
-  suite: SuiteFn;
-  describe: SuiteFn;
-  test: TestFn;
-  it: TestFn;
-  only(suite: SuiteAction): Suite;
-  skip(suite: SuiteAction): Suite;
-  only(title: string, fn: SuiteAction): Suite;
-  skip(title: string, fn: SuiteAction): Suite;
-  before(test: TestAction): void;
-  after(test: TestAction): void;
-  beforeEach(test: TestAction): void;
-  afterEach(test: TestAction): void;
-  grep(pattern: string): void;
-  exclude(pattern: string): void;
-  mocha(): void;
-  reset(): void;
-  setExit(boolean): void;
-  tryRun(delay: number): void;
-  run(callback: Callback): thunk;
+  (title: string, fn: TestAction): tman.Test;
+  only(title: string, fn: TestAction): tman.Test;
+  skip(title: string, fn: TestAction): tman.Test;
 }
 
 interface SuiteResult {
@@ -81,61 +100,106 @@ interface TestResult {
   state: Error | boolean;
 }
 
-export default function (suite: SuiteAction): Suite;
-export default function (title: string, suite: SuiteAction): Suite;
-
-export const NAME: string;
-export const VERSION: string;
-export const TEST: string;
-export let baseDir: string;
-
-// method in Tman interface
-export const suite: SuiteFn;
-export const describe: SuiteFn;
-export const test: TestFn;
-export const it: TestFn;
-export function only(suite: SuiteAction): Suite;
-export function skip(suite: SuiteAction): Suite;
-export function only(title: string, fn: SuiteAction): Suite;
-export function skip(title: string, fn: SuiteAction): Suite;
-export function before(test: TestAction): void;
-export function after(test: TestAction): void;
-export function beforeEach(test: TestAction): void;
-export function afterEach(test: TestAction): void;
-export function grep(pattern: string): void;
-export function exclude(pattern: string): void;
-export function mocha(): void;
-export function reset(): void;
-export function setExit(boolean): void;
-export function tryRun(delay: number): void;
-export function run(callback?: Callback): thunk;
-
-// extra method
-export function createTman (): Tman;
-export function loadFiles(files: string | Array<string>): void;
-
-export class Test {
-  title: string;
-  parent: Suite;
-  constructor(title: string, parent: Suite, mode: 'only' | 'skip' | '');
-  onStart(): void;
-  onFinish(): void;
-  fullTitle(): string;
-  timeout(duration: number): void;
-  toJSON(): TestResult;
-  toThunk(): thunk;
+interface Tman {
+  (suite: SuiteAction): tman.Suite;
+  (title: string, suite: SuiteAction): tman.Suite;
+  rootSuite: tman.Suite;
+  suite: SuiteFn;
+  describe: SuiteFn;
+  test: TestFn;
+  it: TestFn;
+  only(suite: SuiteAction): tman.Suite;
+  skip(suite: SuiteAction): tman.Suite;
+  only(title: string, fn: SuiteAction): tman.Suite;
+  skip(title: string, fn: SuiteAction): tman.Suite;
+  before(test: TestAction): void;
+  after(test: TestAction): void;
+  beforeEach(test: TestAction): void;
+  afterEach(test: TestAction): void;
+  grep(pattern: string): void;
+  exclude(pattern: string): void;
+  mocha(): void;
+  reset(): void;
+  setExit(boolean): void;
+  tryRun(delay: number): void;
+  run(callback: Callback): ThunkFunction;
 }
 
-export class Suite {
-  title: string;
-  parent: Suite;
-  constructor(title: string, parent: Suite, fn: TestAction, mode: 'only' | 'skip' | '');
-  reset(): Suite;
-  onStart(): void;
-  onFinish(): void;
-  fullTitle(): string;
-  timeout(duration: number): void;
-  toJSON(): SuiteResult;
-  toThunk(): thunk;
-  log(...args: any[]): void;
+declare function tman (suite: SuiteAction): tman.Suite;
+declare function tman (title: string, suite: SuiteAction): tman.Suite;
+declare module tman {
+  export const NAME: string;
+  export const VERSION: string;
+  export const TEST: string;
+  export var baseDir: string;
+  // method in Tman interface
+  export const suite: SuiteFn;
+  export const describe: SuiteFn;
+  export const test: TestFn;
+  export const it: TestFn;
+  // export class Suite extends Suite;
+  // export class Test extends Test;
+  export function tman (suite: SuiteAction): tman.Suite;
+  export function tman (title: string, suite: SuiteAction): tman.Suite;
+  export function only(suite: SuiteAction): Suite;
+  export function skip(suite: SuiteAction): Suite;
+  export function only(title: string, fn: SuiteAction): Suite;
+  export function skip(title: string, fn: SuiteAction): Suite;
+  export function before(test: TestAction): void;
+  export function after(test: TestAction): void;
+  export function beforeEach(test: TestAction): void;
+  export function afterEach(test: TestAction): void;
+  export function grep(pattern: string): void;
+  export function exclude(pattern: string): void;
+  export function mocha(): void;
+  export function reset(): void;
+  export function setExit(boolean): void;
+  export function tryRun(delay: number): void;
+  export function run(callback?: Callback): ThunkFunction;
+
+  // extra method
+  export function createTman (): Tman;
+  export function loadFiles(files: string | Array<string>): void;
+  export function setBaseDir(path: string): void;
+
+  export class Test {
+    title: string;
+    parent: Suite;
+    root: Suite;
+    startTime: number;
+    endTime: number;
+    state: boolean | Error | void;
+    depth: number;
+    mode: 'skip' | 'only';
+    constructor(title: string, parent: Suite, mode: 'only' | 'skip' | '');
+    onStart(): void;
+    onFinish(): void;
+    fullTitle(): string;
+    timeout(duration: number): void;
+    toJSON(): TestResult;
+    toThunk(): ThunkLikeFunction;
+  }
+
+  export class Suite {
+    title: string;
+    parent: Suite;
+    root: Suite;
+    startTime: number;
+    endTime: number;
+    state: boolean | Error | void;
+    depth: number;
+    children: Array<Suite | Test>;
+    mode: 'skip' | 'only' | 'hasOnly';
+    constructor(title: string, parent: Suite, fn: TestAction, mode: 'only' | 'skip' | '');
+    reset(): Suite;
+    onStart(): void;
+    onFinish(): void;
+    fullTitle(): string;
+    timeout(duration: number): void;
+    toJSON(): SuiteResult;
+    toThunk(): ThunkLikeFunction;
+    log(...args: any[]): void;
+  }
 }
+
+export = tman;

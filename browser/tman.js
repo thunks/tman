@@ -14,6 +14,7 @@ tm.VERSION = info.version
 tm.Test = core.Test
 tm.Suite = core.Suite
 tm.createTman = tmanFactroy
+tm.tman = tm
 tm.env = env
 tm.env.TEST = window.TEST
 
@@ -183,7 +184,9 @@ Suite.prototype.reset = function () {
   return this
 }
 
-Suite.prototype.log = null
+Suite.prototype.log = function () {
+  return this.root.log.apply(this, arguments)
+}
 /* istanbul ignore next */
 Suite.prototype.onStart = function () {}
 /* istanbul ignore next */
@@ -325,6 +328,7 @@ Suite.prototype.toThunk = function () {
 
     ctx.cleanHandle = clearSuite
     function clearSuite (err) {
+      if (clearSuite.called) return
       clearSuite.called = true
       ctx.root.callbackMachine = null
       if (err == null) ctx.state = true
@@ -502,6 +506,7 @@ Test.prototype.toThunk = function () {
 
     ctx.cleanHandle = clearTest
     function clearTest (err) {
+      if (clearTest.called) return
       clearTest.called = true
       clearTimeout(ctx.timer)
       ctx.root.callbackMachine = null
@@ -1107,8 +1112,10 @@ function parseRegExp (str) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.1'
+  thunks.VERSION = '4.7.3'
   thunks['default'] = thunks
+  thunks.thunk = thunks()
+  thunks.thunks = thunks
   thunks.pruneErrorStack = true
   thunks.Scope = Scope
   thunks.isGeneratorFn = function (fn) { return isFunction(fn) && isGeneratorFn(fn) }
@@ -1122,21 +1129,22 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/tman.js",
-  "typings": "./tman.d.ts",
+  "typings": "tman.d.ts",
   "bin": {
     "tman": "./bin/tman",
     "_tman": "./bin/_tman"
   },
   "scripts": {
-    "test": "standard && bin/tman",
+    "test": "standard && bin/tman 'test/*.js'",
     "test-all": "make test",
-    "test-cov": "istanbul cover bin/_tman",
+    "test-cov": "istanbul cover bin/_tman 'test/*.js'",
+    "test-typings": "bin/tman -r ts-node/register test/typings.test.ts",
     "browser": "browserify lib/browser.js -s tman -o browser/tman.js"
   },
   "repository": {
@@ -1165,7 +1173,7 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.6",
     "supports-color": "^3.1.2",
-    "thunks": "^4.7.1"
+    "thunks": "^4.7.3"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
@@ -1174,7 +1182,7 @@ module.exports={
     "babel-register": "^6.14.0",
     "coffee-script": "^1.10.0",
     "istanbul": "^0.4.5",
-    "standard": "^8.0.0",
+    "standard": "^8.1.0",
     "ts-node": "^1.3.0",
     "typescript": "^1.8.10"
   },
