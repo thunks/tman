@@ -1,8 +1,9 @@
-/**
-*  Type definitions for tman
-*  https://github.com/thunks/tman
-*  Definitions by: zensh <https://github.com/zensh>
-*/
+// Type definitions for tman
+// Project: https://github.com/thunks/tman
+// Definitions by: zensh <https://github.com/zensh>
+
+// Import: `import * as tman from 'tman'`
+// Import: `import { suite, it, before, after, beforeEach, afterEach } from 'tman'`
 
 interface Callback {
   (err?: Error): void;
@@ -127,7 +128,7 @@ interface Tman {
 
 declare function tman (suite: SuiteAction): tman.Suite;
 declare function tman (title: string, suite: SuiteAction): tman.Suite;
-declare module tman {
+declare namespace tman {
   export const NAME: string;
   export const VERSION: string;
   export const TEST: string;

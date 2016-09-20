@@ -4,12 +4,10 @@
 
 /// <reference path='../typings/index.d.ts' />
 
-import * as thunks from 'thunks'
+import { thunk, thunks, Scope } from 'thunks'
 import * as assert from 'assert'
 import * as tman from '../'
 import { tman as tman1, Suite, Test, suite, it } from '../'
-
-const thunk = thunks()
 
 // tman(function () {}) // should ok
 // tman(function (done) {}) // should error
@@ -124,7 +122,7 @@ tman.suite('run with typings', () => {
 
       tman.it('test level 3-1', function () {
         assert.strictEqual(count++, 11)
-        return thunk.delay(100)
+        return thunks(new Scope())(1)
       })
 
       tman.it('test level 3-2', () => {

@@ -1112,7 +1112,7 @@ function parseRegExp (str) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.3'
+  thunks.VERSION = '4.7.4'
   thunks['default'] = thunks
   thunks.thunk = thunks()
   thunks.thunks = thunks
@@ -1129,13 +1129,13 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "main": "lib/tman.js",
-  "typings": "tman.d.ts",
+  "typings": "index.d.ts",
   "bin": {
     "tman": "./bin/tman",
     "_tman": "./bin/_tman"
@@ -1173,7 +1173,7 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.0.6",
     "supports-color": "^3.1.2",
-    "thunks": "^4.7.3"
+    "thunks": "^4.7.4"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
@@ -1191,7 +1191,7 @@ module.exports={
     "bin",
     "lib",
     "browser",
-    "tman.d.ts"
+    "index.d.ts"
   ],
   "standard": {
     "ignore": [
