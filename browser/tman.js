@@ -1129,7 +1129,7 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.4.7",
+  "version": "1.5.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1171,7 +1171,7 @@ module.exports={
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
     "commander": "^2.9.0",
-    "glob": "^7.0.6",
+    "glob": "^7.1.0",
     "supports-color": "^3.1.2",
     "thunks": "^4.7.4"
   },

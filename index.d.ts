@@ -160,8 +160,9 @@ declare namespace tman {
 
   // extra method
   export function createTman (): Tman;
-  export function loadFiles(files: string | Array<string>): void;
   export function setBaseDir(path: string): void;
+  export function globals(args: Array<string>): void;
+  export function loadFiles(files: string | Array<string>, sort?: boolean): void;
 
   export class Test {
     title: string;

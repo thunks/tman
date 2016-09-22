@@ -2,7 +2,6 @@
 
 var fs = require('fs')
 var path = require('path')
-var glob = require('glob')
 var program = require('commander')
 var getOptions = require('./options')
 var packageInfo = require('../package.json')
@@ -83,15 +82,8 @@ else tman.rootSuite.timeout(parseInt(program.timeout, 10) || 2000)
 requires.forEach(function (mod) { require(mod) })
 
 // register to global object
-if (!globals.length) {
-  globals.push('describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach')
-}
-globals.forEach(function (name) {
-  if (global[name]) throw new Error('"' + name + '" exists on global')
-  if (!tman[name]) throw new Error('"' + name + '" not exists on tman')
-  global[name] = tman[name]
-})
-global.tman = tman
+var defaultGlobals = ['tman', 'describe', 'suite', 'test', 'it', 'before', 'after', 'beforeEach', 'afterEach']
+tman.globals(globals.length ? globals : defaultGlobals)
 
 if (!tman.env.TEST) tman.env.TEST = 'root'
 if (!process.env.npm_execpath) {
@@ -103,42 +95,12 @@ if (!process.env.npm_execpath) {
   })
 }
 
-// files.
-var files = []
-var args = program.args
-// default files to `test/*.{js,ts,coffee}`
-if (!args.length) args.push(path.join('test', '*.{js,ts,coffee}'))
-args.forEach(function (arg) {
-  var result = []
-  if (fsStat(arg) === 1) {
-    files.push(arg)
-    return
-  }
-  var filenames = glob.sync(arg)
-  if (!filenames.length) filenames.push(arg + '.js')
-  filenames.forEach(function (filename) {
-    var stat = fsStat(filename)
-    if (stat === 1) result.push(filename)
-    else if (stat === 2) {
-      result.push.apply(result, glob.sync(path.join(filename, '*.{js,ts,coffee}')))
-    }
-  })
-  files.push.apply(files, result)
-})
-
-// load tests
-tman.loadFiles(sortFiles(files))
+// // load test files.
+var files = program.args
+// default files to `test/*.{js,ts,es,coffee}`
+if (!files.length) files.push(path.join('test', '*.{js,ts,es,coffee}'))
+tman.loadFiles(files, program.sort !== false)
 tman.tryRun()
-
-function sortFiles (list) {
-  if (program.sort !== false) {
-    list.sort(function (a, b) {
-      return (a.split(path.sep).length - b.split(path.sep).length) ||
-        Number(a > b) || -Number(a < b)
-    })
-  }
-  return list
-}
 
 function localTman (dirname) {
   var tmanId = path.sep + path.join('lib', 'tman.js')

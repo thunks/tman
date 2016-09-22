@@ -2,7 +2,7 @@ test:
 	bin/tman 'test/*.js'
 	bin/tman test/cli/gc -gc
 	bin/tman test/cli/gc --expose-gc
-	bin/tman test/cli/global --globals suite,it,before,after
+	bin/tman test/cli/global --globals tman,suite,it,before,after
 	bin/tman -g api -e ignore test/cli/grep-exclude
 	bin/tman --mocha test/cli/mocha
 	bin/tman --no-timeout test/cli/no-timeout

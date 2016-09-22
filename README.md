@@ -215,7 +215,7 @@ Run test in `myproject_dir`:
 ```sh
 cd myproject_dir && tman
 ```
-T-man will try to load `myproject_dir/test/*.js` and run it.
+T-man will try to load `myproject_dir/test/*.{js,ts,es,coffee}` and run it.
 
 ### Use with npm package.json
 npm script in `package.json`(, also with `istanbul`):
@@ -442,9 +442,11 @@ Enable mocha compatible mode, same as `--mocha` CLI option.
 #### tman.reset()
 Clear all tests of tman instance.
 
-#### tman.loadFiles(filePath)
-#### tman.loadFiles([filePath])
+#### tman.loadFiles(filePath, sort)
 Load test files to tman, it will clear previous tests file that in `require.cache`.
+
+#### tman.globals(globals)
+Set the given globals.
 
 #### T-man CLI
 
@@ -508,7 +510,7 @@ Use `--require` option:
 [Here](https://github.com/thunks/tman/tree/master/example/simple.coffee) is a simple example. You can require one more modules.
 
 ### License
-T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.  
+T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.
 Copyright &copy; 2016 thunks.
 
 [npm-url]: https://npmjs.org/package/tman
