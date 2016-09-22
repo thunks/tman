@@ -1085,3 +1085,52 @@ tman.suite('reset', function () {
     })
   })
 })
+
+tman.suite('tman.tryRun', function () {
+  tman.it('should clear previous tryRun', function () {
+    var time = Date.now()
+    var t = tman.createTman()
+    t.setExit(false)
+    t.rootSuite.log = function () {}
+
+    t.it('test tryRun', function () {
+      assert.strictEqual(true, true)
+    })
+
+    t.tryRun(100)(function () {
+      assert.strictEqual('will be cleared', false)
+    })
+
+    return thunk.delay(50)(function () {
+      return t.tryRun(50)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.passed, 1)
+        assert.strictEqual(res.ignored, 0)
+        assert.ok(Date.now() - time >= 100)
+      })
+    })
+  })
+
+  tman.it('should not run if running', function () {
+    var time = Date.now()
+    var t = tman.createTman()
+    t.setExit(false)
+    t.rootSuite.log = function () {}
+
+    t.it('test tryRun', function () {
+      return thunk.delay(100)(function () {
+        assert.strictEqual(true, true)
+      })
+    })
+
+    t.tryRun(50)(function () {
+      assert.strictEqual('should not run', false)
+    })
+    return t.tryRun(10)(function (err, res) {
+      assert.strictEqual(err, null)
+      assert.strictEqual(res.passed, 1)
+      assert.strictEqual(res.ignored, 0)
+      assert.ok(Date.now() - time > 100)
+    })
+  })
+})

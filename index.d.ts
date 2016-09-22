@@ -122,8 +122,9 @@ interface Tman {
   mocha(): void;
   reset(): void;
   setExit(boolean): void;
-  tryRun(delay: number): void;
-  run(callback: Callback): ThunkFunction;
+  timeout(duration: number): void;
+  tryRun(delay?: number): ThunkFunction;
+  run(callback?: Callback): ThunkFunction;
 }
 
 declare function tman (suite: SuiteAction): tman.Suite;
@@ -155,7 +156,8 @@ declare namespace tman {
   export function mocha(): void;
   export function reset(): void;
   export function setExit(boolean): void;
-  export function tryRun(delay: number): void;
+  export function timeout(duration: number): void;
+  export function tryRun(delay?: number): ThunkFunction;
   export function run(callback?: Callback): ThunkFunction;
 
   // extra method

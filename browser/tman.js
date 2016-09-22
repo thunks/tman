@@ -294,13 +294,12 @@ Suite.prototype.isSkip = function () {
 }
 
 Suite.prototype.timeout = function (duration) {
-  if (!(duration >= 0)) throw new Error('invalid timeout: ' + String(duration))
-  this.duration = duration
+  this.duration = duration >= 0 ? +duration : -1
 }
 
 Suite.prototype.getDuration = function () {
   if (this.duration >= 0) return this.duration
-  if (this.parent) return this.parent.getDuration()
+  return this.parent ? this.parent.getDuration() : 0
 }
 
 Suite.prototype.fullTitle = function () {
@@ -478,8 +477,7 @@ Test.prototype.isOnly = function () {
 }
 
 Test.prototype.timeout = function (duration) {
-  if (!(duration >= 0)) throw new Error('invalid timeout: ' + String(duration))
-  this.duration = duration
+  this.duration = duration >= 0 ? +duration : -1
 }
 
 Test.prototype.getDuration = function () {
@@ -531,7 +529,7 @@ Test.prototype.toThunk = function () {
       function (callback) {
         thunk.delay()(function () {
           var duration = ctx.getDuration()
-          if (ctx.root.no_timeout || ctx.endTime || !duration) return
+          if (ctx.endTime || !duration) return
           ctx.timer = setTimeout(function () {
             callback(new Error('timeout of ' + duration + 'ms exceeded.'))
           }, duration)
@@ -550,7 +548,6 @@ exports.Tman = function (env) {
   rootSuite.grep = /.*/
   rootSuite.exclude = /.{-1}/
   rootSuite.timeout(2000)
-  rootSuite.no_timeout = false
 
   tm.only = _tman('only')
   tm.skip = _tman('skip')
@@ -627,6 +624,10 @@ exports.Tman = function (env) {
     rootSuite.exit = !!exit
   }
 
+  tm.timeout = function (duration) {
+    rootSuite.timeout(duration)
+  }
+
   tm.exit = function (code) {
     if (process.exit) process.exit(code)
     else if (code) setTimeout(function () { throw new Error('Exit ' + code) })
@@ -636,9 +637,14 @@ exports.Tman = function (env) {
   var running = false
   tm.tryRun = function (delay) {
     if (timer) clearTimeout(timer)
-    timer = setTimeout(function () {
-      if (!running) tm.run()
-    }, delay > 0 ? +delay : 1)
+    return thunk(function (done) {
+      timer = setTimeout(function () {
+        if (!running) tm.run()(done)
+      }, delay > 0 ? delay : 0)
+    })(function (err, res) {
+      if (err) throw err
+      return res
+    })
   }
 
   tm.run = function (callback) {
@@ -1129,7 +1135,7 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
