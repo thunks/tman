@@ -1135,7 +1135,7 @@ function parseRegExp (str) {
 },{}],4:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
