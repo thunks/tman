@@ -164,6 +164,7 @@ declare namespace tman {
   export function createTman (): Tman;
   export function setBaseDir(path: string): void;
   export function globals(args: Array<string>): void;
+  export function useColors(args: boolean): void;
   export function loadFiles(files: string | Array<string>, sort?: boolean): void;
 
   export class Test {

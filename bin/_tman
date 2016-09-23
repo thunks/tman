@@ -22,8 +22,8 @@ program._name = tman.NAME
 program
   .version('v' + tman.VERSION)
   .usage('[debug] [options] [files]')
-  .option('-c, --color', 'force enabling of colors')
-  .option('-C, --no-color', 'force disabling of colors')
+  .option('-c, --colors', 'force enabling of colors')
+  .option('-C, --no-colors', 'force disabling of colors')
   .option('-d, --debug', "enable node's debugger, synonym for node --debug")
   .option('-e, --exclude <pattern>', 'exclude tests matching <pattern>')
   .option('-g, --grep <pattern>', 'run tests matching <pattern>')
@@ -66,6 +66,10 @@ program.on('globals', function (val) {
 if (!process.env.LOADED_TMAN_OPTS) getOptions()
 // parse args
 program.parse(process.argv)
+
+// --no-colors | --colors
+if (~process.argv.indexOf('--no-colors') || ~process.argv.indexOf('-C')) tman.useColors(false)
+else if (~process.argv.indexOf('--colors') || ~process.argv.indexOf('-c')) tman.useColors(true)
 // --exclude <pattern>
 if (program.exclude) tman.exclude(program.exclude)
 // --grep <pattern>
