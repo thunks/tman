@@ -78,5 +78,3 @@ tman.it('throw error', function () {
 tman.it('success test', function () {
   assert.strictEqual(count++, 7)
 })
-
-// tman.run()

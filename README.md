@@ -48,6 +48,7 @@ Summary
     - [T-man CLI](#t-man-cli)
     - [T-man Test mode](#t-man-test-mode)
 - [TypeScript Typings](#typescript-typings)
+- [Reporters](#reporters)
 - [FAQ](#faq)
   - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
 - [License MIT](#license)
@@ -459,13 +460,14 @@ Usage: tman [debug] [options] [files]
 
     -h, --help                           output usage information
     -V, --version                        output the version number
-    -c, --color                          force enabling of colors
-    -C, --no-color                       force disabling of colors
+    -c, --colors                          force enabling of colors
+    -C, --no-colors                       force disabling of colors
     -d, --debug                          enable node\'s debugger, synonym for node --debug
     -e, --exclude <pattern>              exclude tests matching <pattern>
     -g, --grep <pattern>                 run tests matching <pattern>
     -gc, --expose-gc                     expose gc extension
     -r, --require <name>                 require the given module
+    -R, --reporter <name>                specify the reporter to use [spec]
     -t, --timeout <ms>                   set test-case timeout in milliseconds [2000]
     --debug-brk                          enable node\'s debugger breaking on the first line
     --es_staging                         enable all staged features
@@ -479,6 +481,7 @@ Usage: tman [debug] [options] [files]
     --opts <path>                        specify opts path
     --perf-basic-prof                    enable perf linux profiler (basic support)
     --preserve-symlinks                  Instructs the module loader to preserve symbolic links when resolving and caching modules
+    --reporters                          display available reporters
     --throw-deprecation                  throw an exception anytime a deprecated function is used
     --trace                              trace function calls
     --trace-deprecation                  show stack traces on deprecations
@@ -498,6 +501,20 @@ There are 3 ways to run with `test mode`:
 import * as tman from 'tman'
 import { tman, suite, it, before, after, beforeEach, afterEach } from 'tman'
 ```
+
+### Reporters
+
+#### spec
+
+![spec reporter](https://raw.githubusercontent.com/thunks/tman/master/doc/reporter_spec.png)
+
+#### dot
+
+![dot reporter](https://raw.githubusercontent.com/thunks/tman/master/doc/reporter_dot.png)
+
+#### base
+
+![base reporter](https://raw.githubusercontent.com/thunks/tman/master/doc/reporter_base.png)
 
 ### FAQ
 

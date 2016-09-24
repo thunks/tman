@@ -4,6 +4,7 @@
 // **License:** MIT
 
 var path = require('path')
+var util = require('util')
 var assert = require('assert')
 var thunk = require('thunks')()
 var slice = Array.prototype.slice
@@ -13,23 +14,32 @@ var format = tman.format
 
 assert.strictEqual(tman.baseDir, path.join(process.cwd(), 'test'))
 
+function CustomReporter (ctx, childCtx) {
+  tman.Reporter.defaultReporter.call(this, ctx)
+  this.childCtx = childCtx
+}
+util.inherits(CustomReporter, tman.Reporter.defaultReporter)
+CustomReporter.prototype.onFinish = function (res) {
+  tman.rootSuite.passed += res.passed + res.errors.length + res.ignored
+}
+CustomReporter.prototype.log = function () {
+  var args = slice.call(arguments)
+  Array.prototype.push.apply(this.childCtx.messages, args)
+  args[0] = format.indent(this.childCtx.depth) + args[0]
+  tman.rootSuite.reporter.log.apply(null, args)
+}
+
 tman.suite('Exclusive or inclusive tests', function () {
   tman.it('"skip" test', function () {
     var ctx = this
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -75,14 +85,12 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 4)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-2') > 0)
       assert.ok(messages.indexOf('test 2-1') > 0)
       assert.ok(messages.indexOf('suite 2-1') > 0)
       assert.ok(messages.indexOf('test 3-1') > 0)
       assert.ok(messages.indexOf('test 3-2') > 0)
-
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -91,17 +99,11 @@ tman.suite('Exclusive or inclusive tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -126,12 +128,10 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.strictEqual(res.passed, 1)
       assert.strictEqual(res.ignored, 0)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1') > 0)
       assert.ok(messages.indexOf('test 1-2') === -1)
       assert.ok(messages.indexOf('test 1-3') === -1)
-
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -140,17 +140,11 @@ tman.suite('Exclusive or inclusive tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -197,7 +191,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 1)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('suite 1-1') === -1)
       assert.ok(messages.indexOf('suite 1-2') > 0)
       assert.ok(messages.indexOf('test 2-1') > 0)
@@ -206,7 +200,6 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.ok(messages.indexOf('test 3-1') > 0)
       assert.ok(messages.indexOf('test 3-2') > 0)
       assert.ok(messages.indexOf('test 1-1') === -1)
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -215,17 +208,11 @@ tman.suite('Exclusive or inclusive tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -292,7 +279,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.strictEqual(res.passed, 6)
       assert.strictEqual(res.ignored, 1)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('suite 1-1') === -1)
       assert.ok(messages.indexOf('test 1-1') > 0)
       assert.ok(messages.indexOf('test 1-2') === -1)
@@ -306,7 +293,6 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.ok(messages.indexOf('test 3-2-3') > 0)
       assert.ok(messages.indexOf('test 1-3') > 0)
       assert.ok(messages.indexOf('test 1-4') === -1)
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -315,17 +301,11 @@ tman.suite('Exclusive or inclusive tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -366,7 +346,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 3)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1') > 0)
       assert.ok(messages.indexOf('test 1-2') > 0)
       assert.ok(messages.indexOf('suite 1-1') > 0)
@@ -375,8 +355,6 @@ tman.suite('Exclusive or inclusive tests', function () {
       assert.ok(messages.indexOf('test 3-1') > 0)
       assert.ok(messages.indexOf('test 3-2') > 0)
       assert.ok(messages.indexOf('test 1-3') > 0)
-
-      tman.rootSuite.passed += res.passed
     })
   })
 })
@@ -439,18 +417,12 @@ tman.suite('grep and exclude', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.grep('api')
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -518,7 +490,7 @@ tman.suite('grep and exclude', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 1)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('should not run') < 0)
       assert.ok(messages.indexOf('api test') > 0)
       assert.ok(messages.indexOf('api should ignore') < 0)
@@ -530,8 +502,6 @@ tman.suite('grep and exclude', function () {
       assert.ok(messages.indexOf('test 2') < 0)
       assert.ok(messages.indexOf('api 2') < 0)
       assert.ok(messages.indexOf('skip api') > 0)
-
-      tman.rootSuite.passed += res.passed
     })
   })
 })
@@ -542,17 +512,11 @@ tman.suite('Timeouts and errors', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -597,7 +561,7 @@ tman.suite('Timeouts and errors', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 0)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1') > 0)
       assert.ok(messages.indexOf('test 1-2, timeout') > 0)
       assert.ok(messages.indexOf('suite 1-1, timeout') > 0)
@@ -613,8 +577,6 @@ tman.suite('Timeouts and errors', function () {
       assert.ok(res.errors[1].message.indexOf('90ms') > 0)
       assert.strictEqual(res.errors[1].order, 2)
       assert.strictEqual(res.errors[1].title, '/suite 1-1, timeout/test 2-2, timeout')
-
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -623,17 +585,11 @@ tman.suite('Timeouts and errors', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -677,7 +633,7 @@ tman.suite('Timeouts and errors', function () {
       assert.strictEqual(res.passed, 1)
       assert.strictEqual(res.ignored, 1)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1 (1)') > 0)
       assert.ok(messages.indexOf('test 1-2 (2)') > 0)
       assert.ok(messages.indexOf('test 1-3') > 0)
@@ -696,8 +652,6 @@ tman.suite('Timeouts and errors', function () {
       assert.ok(res.errors[2] instanceof Error)
       assert.strictEqual(res.errors[2].order, 3)
       assert.strictEqual(res.errors[2].title, '/suite 1-1/test 2-1')
-
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -706,17 +660,11 @@ tman.suite('Timeouts and errors', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -766,7 +714,7 @@ tman.suite('Timeouts and errors', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 0)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1 with error (1)') > 0)
       assert.ok(messages.indexOf('/suite 1-1 "before" Hook (2)') > 0)
       assert.ok(messages.indexOf('/suite 1-2 "afterEach" Hook (3)') > 0)
@@ -782,8 +730,6 @@ tman.suite('Timeouts and errors', function () {
       assert.ok(res.errors[2] instanceof Error)
       assert.strictEqual(res.errors[2].order, 3)
       assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" Hook')
-
-      tman.rootSuite.passed += res.passed
     })
   })
 
@@ -792,19 +738,13 @@ tman.suite('Timeouts and errors', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
     // remove parent uncaughtException handle
     process.removeListener('uncaughtException', tman.uncaught)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -862,7 +802,7 @@ tman.suite('Timeouts and errors', function () {
       assert.strictEqual(res.passed, 3)
       assert.strictEqual(res.ignored, 0)
 
-      messages = messages.join('')
+      var messages = ctx.messages.join('')
       assert.ok(messages.indexOf('test 1-1 with error (1)') > 0)
       assert.ok(messages.indexOf('/suite 1-1 "before" Hook (2)') > 0)
       assert.ok(messages.indexOf('/suite 1-2 "afterEach" Hook (3)') > 0)
@@ -878,8 +818,6 @@ tman.suite('Timeouts and errors', function () {
       assert.ok(res.errors[2] instanceof Error)
       assert.strictEqual(res.errors[2].order, 3)
       assert.strictEqual(res.errors[2].title, '/suite 1-2 "afterEach" Hook')
-
-      tman.rootSuite.passed += res.passed
     })
   })
 })
@@ -890,18 +828,12 @@ tman.suite('mocha compatible mode', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    var messages = []
-    // log for new instance
-    t.rootSuite.log = function () {
-      var args = slice.call(arguments)
-      messages = messages.concat(args)
-      args[0] = format.indent(ctx.depth) + args[0]
-      tman.rootSuite.log.apply(null, args)
-    }
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.mocha()
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -981,7 +913,6 @@ tman.suite('mocha compatible mode', function () {
       if (err) throw err
       assert.strictEqual(res.passed, 10)
       assert.strictEqual(res.ignored, 1)
-      tman.rootSuite.passed += res.passed
     })
   })
 })
@@ -990,6 +921,8 @@ tman.suite('reset', function () {
   tman.it('suite.reset', function () {
     var count = 0
     var t = tman.createTman()
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
       assert.strictEqual(count++, 0)
@@ -1032,12 +965,13 @@ tman.suite('reset', function () {
       if (err) throw err
       assert.strictEqual(res.passed, 1)
       assert.strictEqual(res.ignored, 0)
-      tman.rootSuite.passed += res.passed
     })
   })
 
   tman.it('tman.reset', function () {
     var t = tman.createTman()
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
       assert.strictEqual(true, false)
@@ -1080,7 +1014,6 @@ tman.suite('reset', function () {
         if (err) throw err
         assert.strictEqual(res.passed, 1)
         assert.strictEqual(res.ignored, 0)
-        tman.rootSuite.passed += res.passed
       })
     })
   })
@@ -1091,7 +1024,8 @@ tman.suite('tman.tryRun', function () {
     var time = Date.now()
     var t = tman.createTman()
     t.setExit(false)
-    t.rootSuite.log = function () {}
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.it('test tryRun', function () {
       assert.strictEqual(true, true)
@@ -1115,7 +1049,8 @@ tman.suite('tman.tryRun', function () {
     var time = Date.now()
     var t = tman.createTman()
     t.setExit(false)
-    t.rootSuite.log = function () {}
+    this.messages = []
+    t.setReporter(CustomReporter, this)
 
     t.it('test tryRun', function () {
       return thunk.delay(100)(function () {

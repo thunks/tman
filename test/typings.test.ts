@@ -7,7 +7,7 @@
 import { thunk, thunks, Scope } from 'thunks'
 import * as assert from 'assert'
 import * as tman from '../'
-import { tman as tman1, Suite, Test, suite, it } from '../'
+import { tman as tman1, Suite, Test, Reporter, suite, it } from '../'
 
 // tman(function () {}) // should ok
 // tman(function (done) {}) // should error
@@ -36,6 +36,19 @@ tman.suite('tman typings', () => {
     assert.ok(tman.run instanceof Function)
     assert.ok(tman.createTman instanceof Function)
     assert.ok(tman.loadFiles instanceof Function)
+    assert.ok(tman.loadReporter instanceof Function)
+    assert.ok(tman.useColors instanceof Function)
+    assert.ok(tman.globals instanceof Function)
+    assert.ok(tman.rootSuite instanceof Suite)
+    assert.ok(tman.rootSuite.reporter instanceof Reporter)
+
+    assert.ok(tman.Reporter.prototype.log instanceof Function)
+    assert.ok(tman.Reporter.prototype.onSuiteStart instanceof Function)
+    assert.ok(tman.Reporter.prototype.onSuiteFinish instanceof Function)
+    assert.ok(tman.Reporter.prototype.onTestStart instanceof Function)
+    assert.ok(tman.Reporter.prototype.onTestFinish instanceof Function)
+    assert.ok(tman.Reporter.prototype.onStart instanceof Function)
+    assert.ok(tman.Reporter.prototype.onFinish instanceof Function)
 
     assert.strictEqual(tman, tman1)
     assert.strictEqual(tman.Suite, Suite)
@@ -48,7 +61,6 @@ tman.suite('tman typings', () => {
 
   tman.it('tman(suite)', function () {
     let tm = tman.createTman()
-    tm.rootSuite.log = function () {}
     assert.ok(tm(function () {}) instanceof tman.Suite)
     assert.ok(tm('test', function () {}) instanceof tman.Suite)
     tm.setExit(false)

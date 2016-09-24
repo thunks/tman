@@ -84,27 +84,47 @@ interface TestFn {
 }
 
 interface SuiteResult {
+  ctx: tman.Suite;
   title: string;
-  mode: string;
-  depth: number;
-  startTime: number;
-  endTime: number;
-  children: Array<SuiteResult | TestResult>;
-}
-
-interface TestResult {
-  title: string;
-  mode: string;
+  fullTitle: string;
   depth: number;
   startTime: number;
   endTime: number;
   state: Error | boolean;
+  mode: 'skip' | 'only' | 'hasOnly';
+}
+
+interface RootSuiteResult extends SuiteResult {
+  ctx: RootSuite;
+  abort: boolean;
+  passed: number;
+  ignored: number;
+  errors: Array<Error>;
+}
+
+interface TestResult {
+  ctx: tman.Test;
+  title: string;
+  fullTitle: string;
+  depth: number;
+  startTime: number;
+  endTime: number;
+  state: Error | boolean;
+  mode: 'skip' | 'only';
+}
+
+interface RootSuite extends tman.Suite {
+  abort: boolean;
+  passed: number;
+  ignored: number;
+  errors: Array<Error>;
+  reporter: tman.Reporter;
 }
 
 interface Tman {
   (suite: SuiteAction): tman.Suite;
   (title: string, suite: SuiteAction): tman.Suite;
-  rootSuite: tman.Suite;
+  rootSuite: RootSuite;
   suite: SuiteFn;
   describe: SuiteFn;
   test: TestFn;
@@ -122,6 +142,7 @@ interface Tman {
   mocha(): void;
   reset(): void;
   setExit(boolean): void;
+  setReporter(reporter: tman.Reporter, options?: any): void;
   timeout(duration: number): void;
   tryRun(delay?: number): ThunkFunction;
   run(callback?: Callback): ThunkFunction;
@@ -139,8 +160,8 @@ declare namespace tman {
   export const describe: SuiteFn;
   export const test: TestFn;
   export const it: TestFn;
-  // export class Suite extends Suite;
-  // export class Test extends Test;
+  export const rootSuite: RootSuite;
+
   export function tman (suite: SuiteAction): tman.Suite;
   export function tman (title: string, suite: SuiteAction): tman.Suite;
   export function only(suite: SuiteAction): Suite;
@@ -165,6 +186,7 @@ declare namespace tman {
   export function setBaseDir(path: string): void;
   export function globals(args: Array<string>): void;
   export function useColors(args: boolean): void;
+  export function loadReporter(reporter: string): void;
   export function loadFiles(files: string | Array<string>, sort?: boolean): void;
 
   export class Test {
@@ -204,6 +226,18 @@ declare namespace tman {
     toJSON(): SuiteResult;
     toThunk(): ThunkLikeFunction;
     log(...args: any[]): void;
+  }
+
+  export class Reporter {
+    ctx: Suite;
+    constructor(ctx: Suite, options?: any);
+    log(...args: any[]): void;
+    onStart(): void;
+    onSuiteStart(suiteResult: SuiteResult): void;
+    onSuiteFinish(suiteResult: SuiteResult): void;
+    onTestStart(suiteResult: TestResult): void;
+    onTestFinish(suiteResult: TestResult): void;
+    onFinish(rootSuiteResult: RootSuiteResult): void;
   }
 }
 

@@ -36,6 +36,5 @@ thunk(function * () {
   assert.strictEqual(res.ignored, 0)
   assert.strictEqual(res.errors.length, 1)
 
-  // process exit
-  tman.exit(0)
+  process.exit(0)
 })()

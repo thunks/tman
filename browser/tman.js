@@ -6,6 +6,8 @@
 
 var core = require('./core')
 var info = require('../package.json')
+var Reporter = require('./reporters/base')
+require('./reporters/browser') // mount "browser" as default reporter
 
 var env = {}
 var tm = module.exports = tmanFactroy()
@@ -13,6 +15,7 @@ tm.NAME = info.name
 tm.VERSION = info.version
 tm.Test = core.Test
 tm.Suite = core.Suite
+tm.Reporter = Reporter
 tm.createTman = tmanFactroy
 tm.tman = tm
 tm.env = env
@@ -20,126 +23,11 @@ tm.env.TEST = window.TEST
 
 function tmanFactroy () {
   var tman = core.Tman(env)
-
-  tman._beforeRun = function () {
-    var tmanEl = document.getElementById('tman')
-    if (!tmanEl) {
-      tmanEl = createEl('div', 'tman')
-      tmanEl.setAttribute('id', 'tman')
-      document.body.appendChild(tmanEl)
-    }
-    tmanEl.appendChild(createEl('h2', 'tman-header', 'T-man'))
-    tman.rootSuite.el = tmanEl
-  }
-  tman._afterRun = finished
+  tman.setReporter(Reporter.defaultReporter)
   return tman
 }
 
-// default out stream
-core.Suite.prototype.log = function () {
-  console.log.apply(console, arguments)
-}
-
-core.Suite.prototype.el = null
-core.Test.prototype.el = null
-
-// default suite reporter (start event)
-core.Suite.prototype.onStart = function () {
-  if (!this.parent) return // root
-  var title = '✢ ' + this.title
-
-  this.el = createEl('div', 'tman-suite')
-  this.titleEl = createEl('h3', '', indent(this.depth) + title)
-  this.el.appendChild(this.titleEl)
-  this.parent.el.appendChild(this.el)
-}
-
-// default suite reporter (finish event)
-core.Suite.prototype.onFinish = function () {
-  if (this.state instanceof Error) {
-    this.el.setAttribute('class', 'tman-test error')
-    var el = createEl('span', 'more-info', indent(this.depth + 1) + this.state.title + ' ✗ (' + this.state.order + ')')
-    this.el.appendChild(el)
-  }
-}
-
-// default test reporter (start event)
-core.Test.prototype.onStart = function () {
-  this.el = createEl('div', 'tman-test', indent(this.depth) + this.title)
-  this.parent.el.appendChild(this.el)
-}
-
-// default test reporter (finish event)
-core.Test.prototype.onFinish = function () {
-  var message = ''
-  var className = 'tman-test '
-  if (this.state === null) {
-    message += ' ‒'
-    className += 'ignored'
-  } else if (this.state === true) {
-    message += ' ✓'
-    className += 'success'
-    var time = this.endTime - this.startTime
-    if (time > 50) message += ' (' + time + 'ms)'
-  } else {
-    message += ' ✗ (' + this.state.order + ')'
-    className += 'error'
-  }
-  this.el.setAttribute('class', className)
-  if (message) {
-    var el = createEl('span', 'more-info', message)
-    this.el.appendChild(el)
-  }
-}
-
-// default finished reporter
-function finished (err, res) {
-  if (err) {
-    console.error(err)
-    window.alert(err.toString())
-  }
-
-  var resultEl = createEl('div', 'tman-footer')
-  this.rootSuite.el.appendChild(resultEl)
-
-  var statEl = createEl('div', 'tman-statistics')
-  statEl.appendChild(createEl('span', 'info', 'Test ' + (res.errors.length ? 'failed: ' : 'finished: ')))
-  statEl.appendChild(createEl('span', res.passed && 'success', res.passed + ' passed;'))
-  statEl.appendChild(createEl('span', res.errors.length && 'error', res.errors.length + ' failed;'))
-  statEl.appendChild(createEl('span', res.errors && 'ignored', res.ignored + ' ignored.'))
-  statEl.appendChild(createEl('span', 'info', '(' + (res.endTime - res.startTime) + 'ms)'))
-
-  resultEl.appendChild(statEl)
-  /* istanbul ignore next */
-  res.errors.forEach(function (err) {
-    var errEl = createEl('div', 'tman-error')
-    errEl.appendChild(createEl('h4', 'error', err.order + ') ' + err.title + ':'))
-    var message = err.stack ? err.stack : String(err)
-    message = message.replace(/^/gm, '<br/>').replace(/ /g, '&nbsp;').slice(5)
-    errEl.appendChild(createEl('p', 'error-stack', message))
-    resultEl.appendChild(errEl)
-  })
-}
-
-function indent (len) {
-  var ch = '&nbsp;&nbsp;'
-  var pad = ''
-
-  while (len > 0) {
-    if (len & 1) pad += ch
-    if ((len >>= 1)) ch = ch + ch // avoid "standard" lint
-  }
-  return pad
-}
-
-function createEl (tag, className, content) {
-  var el = document.createElement(tag)
-  if (className) el.setAttribute('class', className)
-  if (content) el.innerHTML = content
-  return el
-}
-
-},{"../package.json":4,"./core":2}],2:[function(require,module,exports){
+},{"../package.json":6,"./core":2,"./reporters/base":3,"./reporters/browser":4}],2:[function(require,module,exports){
 (function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
@@ -149,6 +37,9 @@ function createEl (tag, className, content) {
 var path = require('path')
 var thunks = require('thunks')
 var thunk = thunks()
+// Save timer references to avoid other module (Sinon) interfering.
+var $setTimeout = setTimeout
+var $clearTimeout = clearTimeout
 
 function Suite (title, parent, mode) {
   this.title = title
@@ -184,13 +75,6 @@ Suite.prototype.reset = function () {
   return this
 }
 
-Suite.prototype.log = function () {
-  return this.root.log.apply(this, arguments)
-}
-/* istanbul ignore next */
-Suite.prototype.onStart = function () {}
-/* istanbul ignore next */
-Suite.prototype.onFinish = function () {}
 /* istanbul ignore next */
 Suite.prototype.inspect = function () {
   return {
@@ -213,16 +97,14 @@ Suite.prototype.inspect = function () {
 
 Suite.prototype.toJSON = function () {
   return {
+    ctx: this,
     title: this.title,
-    mode: this.mode,
+    fullTitle: this.fullTitle(),
+    mode: this.mode, // 'skip', 'only', 'hasOnly'
     depth: this.depth,
     startTime: this.startTime,
     endTime: this.endTime,
-    before: this.before.toJSON(),
-    after: this.after.toJSON(),
-    beforeEach: this.beforeEach.toJSON(),
-    afterEach: this.afterEach.toJSON(),
-    children: this.children.map(function (test) { return test.toJSON() })
+    state: this.state // skip: null, passed: true, failed: error
   }
 }
 
@@ -315,13 +197,13 @@ Suite.prototype.toThunk = function () {
     if (ctx.root.abort) return done()
     if (hasOnly && ctx.mode !== 'hasOnly' && !ctx.isOnly()) return done()
 
-    ctx.onStart()
+    ctx.root.reporter.onSuiteStart(ctx.toJSON())
     if (ctx.mode === 'skip') {
       return thunk.seq(ctx.children.map(function (test) {
         test.mode = 'skip'
         return test
       }))(function () {
-        ctx.onFinish()
+        ctx.root.reporter.onSuiteFinish(ctx.toJSON())
       })(done)
     }
 
@@ -329,7 +211,7 @@ Suite.prototype.toThunk = function () {
     function clearSuite (err) {
       if (clearSuite.called) return
       clearSuite.called = true
-      ctx.root.callbackMachine = null
+      ctx.root.runnerMachine = null
       if (err == null) ctx.state = true
       else {
         ctx.state = err
@@ -338,7 +220,7 @@ Suite.prototype.toThunk = function () {
         err.title = ctx.fullTitle() + ' ' + (err.title || clearSuite.hookTitle || '')
       }
       ctx.endTime = Date.now()
-      ctx.onFinish()
+      ctx.root.reporter.onSuiteFinish(ctx.toJSON())
       done()
     }
 
@@ -381,13 +263,6 @@ Hooks.prototype.inspect = function () {
   }
 }
 
-Hooks.prototype.toJSON = function () {
-  return {
-    title: this.title,
-    hooks: this.hooks
-  }
-}
-
 // Mocha compatible mode
 Hooks.prototype.getParentHooks = function () {
   var suite = this.parent
@@ -415,7 +290,7 @@ Hooks.prototype.toThunk = function () {
     var title = '"' + ctx.title + '" Hook'
     if (!suite.cleanHandle.called) {
       suite.cleanHandle.hookTitle = title
-      suite.root.callbackMachine = suite.cleanHandle
+      suite.root.runnerMachine = suite.cleanHandle
     }
 
     thunk.seq.call(suite, hooks)(function (err) {
@@ -442,10 +317,7 @@ function Test (title, parent, fn, mode) {
   this.cleanHandle = null
   this.depth = parent.depth + 1
 }
-/* istanbul ignore next */
-Test.prototype.onStart = function () {}
-/* istanbul ignore next */
-Test.prototype.onFinish = function () {}
+
 /* istanbul ignore next */
 Test.prototype.inspect = function () {
   return {
@@ -463,12 +335,14 @@ Test.prototype.inspect = function () {
 
 Test.prototype.toJSON = function () {
   return {
+    ctx: this,
     title: this.title,
-    mode: this.mode,
+    fullTitle: this.fullTitle(),
+    mode: this.mode, // 'skip', 'only'
     depth: this.depth,
     startTime: this.startTime,
     endTime: this.endTime,
-    state: this.state
+    state: this.state // skip: null, passed: true, failed: error
   }
 }
 
@@ -495,10 +369,10 @@ Test.prototype.toThunk = function () {
     /* istanbul ignore next */
     if (ctx.root.abort) return done()
     if (ctx.parent.hasOnly() && !ctx.isOnly()) return done()
-    ctx.onStart()
+    ctx.root.reporter.onTestStart(ctx.toJSON())
     if (ctx.mode === 'skip') {
       ctx.root.ignored++
-      ctx.onFinish()
+      ctx.root.reporter.onTestFinish(ctx.toJSON())
       return done()
     }
 
@@ -506,8 +380,8 @@ Test.prototype.toThunk = function () {
     function clearTest (err) {
       if (clearTest.called) return
       clearTest.called = true
-      clearTimeout(ctx.timer)
-      ctx.root.callbackMachine = null
+      $clearTimeout(ctx.timer)
+      ctx.root.runnerMachine = null
       if (err == null) {
         ctx.state = true
         ctx.root.passed++
@@ -518,19 +392,19 @@ Test.prototype.toThunk = function () {
         err.title = ctx.fullTitle()
       }
       ctx.endTime = Date.now()
-      ctx.onFinish()
+      ctx.root.reporter.onTestFinish(ctx.toJSON())
       done()
     }
 
     ctx.startTime = Date.now()
-    ctx.root.callbackMachine = clearTest
+    ctx.root.runnerMachine = clearTest
     thunk.race.call(ctx, [
       toThunkableFn(ctx.fn, ctx),
       function (callback) {
         thunk.delay()(function () {
           var duration = ctx.getDuration()
           if (ctx.endTime || !duration) return
-          ctx.timer = setTimeout(function () {
+          ctx.timer = $setTimeout(function () {
             callback(new Error('timeout of ' + duration + 'ms exceeded.'))
           }, duration)
         })
@@ -624,21 +498,20 @@ exports.Tman = function (env) {
     rootSuite.exit = !!exit
   }
 
-  tm.timeout = function (duration) {
-    rootSuite.timeout(duration)
+  tm.setReporter = function (CustomReporter, options) {
+    rootSuite.reporter = new CustomReporter(rootSuite, options)
   }
 
-  tm.exit = function (code) {
-    if (process.exit) process.exit(code)
-    else if (code) setTimeout(function () { throw new Error('Exit ' + code) })
+  tm.timeout = function (duration) {
+    rootSuite.timeout(duration)
   }
 
   var timer = null
   var running = false
   tm.tryRun = function (delay) {
-    if (timer) clearTimeout(timer)
+    if (timer) $clearTimeout(timer)
     return thunk(function (done) {
-      timer = setTimeout(function () {
+      timer = $setTimeout(function () {
         if (!running) tm.run()(done)
       }, delay > 0 ? delay : 0)
     })(function (err, res) {
@@ -647,7 +520,7 @@ exports.Tman = function (env) {
     })
   }
 
-  tm.run = function (callback) {
+  tm.run = function (hook) {
     /* istanbul ignore next */
     if (running) throw new Error('T-man is running!')
 
@@ -655,23 +528,32 @@ exports.Tman = function (env) {
       running = false
       process.removeListener('uncaughtException', uncaught)
       endTest.called = true
-      callback = callback || tm._afterRun
-      if (err) return callback.call(tm, err)
+      var suite
+      if (err == null) {
+        suite = rootSuite.toJSON()
+        suite.exit = rootSuite.exit
+        suite.abort = rootSuite.abort
+        suite.passed = rootSuite.passed
+        suite.ignored = rootSuite.ignored
+        suite.errors = rootSuite.errors.slice()
+      }
 
-      var result = rootSuite.toJSON()
-      result.passed = rootSuite.passed
-      result.ignored = rootSuite.ignored
-      result.errors = rootSuite.errors.slice()
-      return callback.call(tm, null, result)
+      return thunk.call(tm, hook && hook.call(tm, err, suite))(function (error) {
+        err = err || error
+        if (err || !suite) throw err
+        rootSuite.reporter.onFinish(suite)
+        return suite
+      })
     }
 
     tm.uncaught = uncaught
     process.on('uncaughtException', uncaught)
     function uncaught (err) {
-      var uncaughtHandle = rootSuite.callbackMachine || endTest
+      var uncaughtHandle = rootSuite.runnerMachine || endTest
       err = err || new Error('uncaught exception')
       err.uncaught = true
-      if (uncaughtHandle.called) rootSuite.log(err)
+      err.stack = err.stack
+      if (uncaughtHandle.called) rootSuite.reporter.log(String(err))
       else uncaughtHandle(err)
     }
 
@@ -680,9 +562,8 @@ exports.Tman = function (env) {
     rootSuite.passed = 0
     rootSuite.ignored = 0
     rootSuite.errors = []
-    rootSuite.callbackMachine = null
-
-    if (tm._beforeRun) tm._beforeRun()
+    rootSuite.runnerMachine = null
+    rootSuite.reporter.onStart()
     return thunk.delay.call(tm)(function () {
       return rootSuite
     })(endTest)
@@ -716,7 +597,211 @@ function parseRegExp (str) {
 }
 
 }).call(this,require('_process'))
-},{"_process":6,"path":5,"thunks":3}],3:[function(require,module,exports){
+},{"_process":8,"path":7,"thunks":5}],3:[function(require,module,exports){
+(function (process){
+'use strict'
+// **Github:** https://github.com/thunks/tman
+//
+// **License:** MIT
+
+module.exports = Reporter
+module.exports.defaultReporter = Reporter
+
+function Reporter (ctx) {
+  this.ctx = ctx
+  this.count = 0
+}
+
+Reporter.prototype.log = function () {
+  console.log.apply(console, arguments)
+}
+
+Reporter.prototype.onStart = function () {
+  this.count = 0
+  this.log('\n')
+}
+
+Reporter.prototype.onSuiteStart = function (suite) {}
+
+Reporter.prototype.onSuiteFinish = function (suite) {}
+
+Reporter.prototype.onTestStart = function (test) {}
+
+Reporter.prototype.onTestFinish = function (test) {
+  if (test.state) {
+    var state = test.state === true ? 'pass' : 'fail'
+    this.log(++this.count + '\t' + test.fullTitle + '\t' + state)
+  }
+}
+
+Reporter.prototype.onFinish = function (rootSuite) {
+  var message = '\nTest ' + (rootSuite.errors.length ? 'failed: ' : 'finished: ')
+  message += rootSuite.passed + ' passed; '
+  message += rootSuite.errors.length + ' failed; '
+  message += rootSuite.ignored + ' ignored.'
+  message += ' (' + (rootSuite.endTime - rootSuite.startTime) + 'ms)\n'
+  this.log(message)
+
+  rootSuite.errors.forEach(function (err) {
+    this.log(err.order + ') ' + err.title + ':')
+    this.log(err.stack ? err.stack : String(err))
+  }, this)
+  if (rootSuite.exit && process.exit) process.exit((rootSuite.errors.length || !rootSuite.passed) ? 1 : 0)
+}
+
+// Result: order + TAB + fulltitle + TAB + state
+// ```
+//
+// 1    /suite level 1-1/test level 2-1    pass
+// 2    /suite level 1-1/test level 2-2    pass
+// 3    /suite level 1-1/suite level 2-1/test level 3-1    pass
+// 4    /suite level 1-1/suite level 2-1/test level 3-2    pass
+// 5    /suite level 1-1/suite level 2-2/test level 3-1    pass
+// 6    /suite level 1-1/suite level 2-2/test level 3-2    pass
+// 7    /suite level 1-1/suite level 2-2/suite level 3-2/test level 4-1    pass
+// 8    /suite level 1-1/suite level 2-2/suite level 3-2/test level 4-2    pass
+// 9    /suite level 1-1/suite level 2-2/suite level 3-2/test level 4-4    pass
+// 10    /test level 1-1    pass
+// 11    /test level 1-2    fail
+// 12    /test level 1-3    pass
+//
+// Test failed: 11 passed; 1 failed; 3 ignored. (608ms)
+//
+// 1) /test level 1-2:
+// AssertionError: 22 === 21
+//     at Test.fn (/Users/zensh/git/js/thunkjs/tman/example/nested.js:116:10)
+//     at Test.<anonymous> (/Users/zensh/git/js/thunkjs/tman/lib/core.js:557:37)
+//
+// ```
+
+}).call(this,require('_process'))
+},{"_process":8}],4:[function(require,module,exports){
+'use strict'
+// **Github:** https://github.com/thunks/tman
+//
+// **License:** MIT
+
+var Reporter = require('./base')
+
+module.exports = Browser
+Reporter.defaultReporter = Browser
+
+function Browser (ctx) {
+  Reporter.call(this, ctx)
+}
+inherits(Browser, Reporter)
+
+Browser.prototype.onStart = function (suite) {
+  var rootElement = document.getElementById('tman')
+  if (!rootElement) {
+    rootElement = createElement('div', 'tman')
+    rootElement.setAttribute('id', 'tman')
+    document.body.appendChild(rootElement)
+  }
+  rootElement.appendChild(createElement('h2', 'tman-header', 'T-man'))
+  this.ctx.$element = rootElement
+}
+
+Browser.prototype.onSuiteStart = function (suite) {
+  if (this.ctx === suite.ctx) return // It is rootSuite
+  var title = '✢ ' + suite.title
+  var $element = suite.ctx.$element = createElement('div', 'tman-suite')
+  $element.appendChild(createElement('h3', '', indent(suite.depth) + title))
+  suite.ctx.parent.$element.appendChild($element)
+}
+
+Browser.prototype.onSuiteFinish = function (suite) {
+  if (suite.state instanceof Error) {
+    suite.ctx.$element.setAttribute('class', 'tman-test error')
+    var $element = createElement('span', 'more-info',
+      indent(suite.depth + 1) + suite.state.title + ' ✗ (' + suite.state.order + ')')
+    suite.ctx.$element.appendChild($element)
+  }
+}
+
+Browser.prototype.onTestStart = function (test) {
+  test.ctx.$element = createElement('div', 'tman-test', indent(test.depth) + test.title)
+  test.ctx.parent.$element.appendChild(test.ctx.$element)
+}
+
+Browser.prototype.onTestFinish = function (test) {
+  var message = ''
+  var className = 'tman-test '
+  if (test.state === null) {
+    message += ' ‒'
+    className += 'ignored'
+  } else if (test.state === true) {
+    message += ' ✓'
+    className += 'success'
+    var time = test.endTime - test.startTime
+    if (time > 50) message += ' (' + time + 'ms)'
+  } else {
+    message += ' ✗ (' + test.state.order + ')'
+    className += 'error'
+  }
+  test.ctx.$element.setAttribute('class', className)
+  if (message) {
+    test.ctx.$element.appendChild(createElement('span', 'more-info', message))
+  }
+}
+
+Browser.prototype.onFinish = function (rootSuite) {
+  var resultElement = createElement('div', 'tman-footer')
+  this.ctx.$element.appendChild(resultElement)
+
+  var statElement = createElement('div', 'tman-statistics')
+  statElement.appendChild(createElement('span',
+    'info', 'Test ' + (rootSuite.errors.length ? 'failed: ' : 'finished: ')))
+  statElement.appendChild(createElement('span',
+    rootSuite.passed && 'success', rootSuite.passed + ' passed;'))
+  statElement.appendChild(createElement('span',
+    rootSuite.errors.length && 'error', rootSuite.errors.length + ' failed;'))
+  statElement.appendChild(createElement('span',
+    rootSuite.errors && 'ignored', rootSuite.ignored + ' ignored.'))
+  statElement.appendChild(createElement('span',
+    'info', '(' + (rootSuite.endTime - rootSuite.startTime) + 'ms)'))
+
+  resultElement.appendChild(statElement)
+  /* istanbul ignore next */
+  rootSuite.errors.forEach(function (err) {
+    var errElement = createElement('div', 'tman-error')
+    errElement.appendChild(createElement('h4', 'error', err.order + ') ' + err.title + ':'))
+    var message = err.stack ? err.stack : String(err)
+    message = message.replace(/^/gm, '<br/>').replace(/ /g, '&nbsp;').slice(5)
+    errElement.appendChild(createElement('p', 'error-stack', message))
+    resultElement.appendChild(errElement)
+  })
+}
+
+function indent (len) {
+  var ch = '&nbsp;&nbsp;'
+  var pad = ''
+
+  while (len > 0) {
+    if (len & 1) pad += ch
+    if ((len >>= 1)) ch = ch + ch // avoid "standard" lint
+  }
+  return pad
+}
+
+function createElement (tag, className, content) {
+  var el = document.createElement(tag)
+  if (className) el.setAttribute('class', className)
+  if (content) el.innerHTML = content
+  return el
+}
+
+function inherits (Child, Parent) {
+  function Ctor () {
+    this.constructor = Child
+  }
+
+  Ctor.prototype = Parent.prototype
+  Child.prototype = new Ctor()
+  return Child
+}
+
+},{"./base":3}],5:[function(require,module,exports){
 // **Github:** https://github.com/thunks/thunks
 //
 // **License:** MIT
@@ -732,10 +817,12 @@ function parseRegExp (str) {
   'use strict'
 
   var maxTickDepth = 100
+  // Save timer references to avoid other module (Sinon) interfering.
+  var $setTimeout = setTimeout
   /* istanbul ignore next */
   var nextTick = typeof setImmediate === 'function'
     ? setImmediate : typeof Promise === 'function'
-    ? function (fn) { Promise.resolve().then(fn) } : function (fn) { setTimeout(fn, 0) }
+    ? function (fn) { Promise.resolve().then(fn) } : function (fn) { $setTimeout(fn, 0) }
 
   function thunks (options) {
     var scope = options instanceof Scope ? options : new Scope(options)
@@ -801,7 +888,7 @@ function parseRegExp (str) {
 
     thunk.delay = function (delay) {
       return thunk.call(this, function (callback) {
-        if (delay > 0) setTimeout(callback, delay)
+        if (delay > 0) $setTimeout(callback, delay)
         else nextTick(callback)
       })
     }
@@ -1118,12 +1205,12 @@ function parseRegExp (str) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.4'
+  thunks.VERSION = '4.7.5'
   thunks['default'] = thunks
+  thunks.Scope = Scope
   thunks.thunk = thunks()
   thunks.thunks = thunks
   thunks.pruneErrorStack = true
-  thunks.Scope = Scope
   thunks.isGeneratorFn = function (fn) { return isFunction(fn) && isGeneratorFn(fn) }
   thunks.isAsyncFn = function (fn) { return isFunction(fn) && isAsyncFn(fn) }
   thunks.isThunkableFn = function (fn) {
@@ -1132,10 +1219,10 @@ function parseRegExp (str) {
   return thunks
 }))
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1179,18 +1266,18 @@ module.exports={
     "commander": "^2.9.0",
     "glob": "^7.1.0",
     "supports-color": "^3.1.2",
-    "thunks": "^4.7.4"
+    "thunks": "^4.7.5"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.8.0",
     "babel-polyfill": "^6.13.0",
     "babel-preset-es2015": "^6.14.0",
     "babel-register": "^6.14.0",
-    "coffee-script": "^1.10.0",
+    "coffee-script": "^1.11.0",
     "istanbul": "^0.4.5",
     "standard": "^8.1.0",
     "ts-node": "^1.3.0",
-    "typescript": "^1.8.10"
+    "typescript": "^2.0.3"
   },
   "files": [
     "README.md",
@@ -1206,7 +1293,7 @@ module.exports={
   }
 }
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1434,7 +1521,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":6}],6:[function(require,module,exports){
+},{"_process":8}],8:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

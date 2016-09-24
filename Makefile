@@ -6,6 +6,9 @@ test:
 	bin/tman -g api -e ignore test/cli/grep-exclude
 	bin/tman --mocha test/cli/mocha
 	bin/tman --no-timeout test/cli/no-timeout
+	!(bin/tman --reporter base test/cli/reporters.js)
+	!(bin/tman -R dot test/cli/reporters.js)
+	!(bin/tman --reporter spec test/cli/reporters.js)
 	bin/tman -r test/cli/require-a test/cli/require-b
 	bin/tman test/cli/reset
 	!(bin/tman -t 650 test/cli/timeout)

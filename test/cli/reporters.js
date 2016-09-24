@@ -3,11 +3,11 @@
 //
 // **License:** MIT
 
-// `tman example/nested.js`
+// `tman --reporter dot test/cli/reporters.js`
 
 const assert = require('assert')
 const thunk = require('thunks')()
-const tman = require('..')
+const tman = require('../..')
 
 var count = 0
 

@@ -4,6 +4,7 @@
 // **License:** MIT
 
 var path = require('path')
+var util = require('util')
 var assert = require('assert')
 var slice = Array.prototype.slice
 
@@ -17,8 +18,22 @@ try { // 检测是否支持 generator，是则加载 generator 测试
 
 assert.strictEqual(tman.baseDir, path.join(process.cwd(), 'test'))
 
+function CustomReporter (ctx, childCtx) {
+  tman.Reporter.defaultReporter.call(this, ctx)
+  this.childCtx = childCtx
+}
+util.inherits(CustomReporter, tman.Reporter.defaultReporter)
+CustomReporter.prototype.onFinish = function (res) {
+  tman.rootSuite.passed += res.passed + res.errors.length + res.ignored
+}
+CustomReporter.prototype.log = function () {
+  var args = slice.call(arguments)
+  args[0] = format.indent(this.childCtx.depth) + args[0]
+  tman.rootSuite.reporter.log.apply(null, args)
+}
+
 tman.afterEach(function () {
-  tman.rootSuite.log('')
+  tman.rootSuite.reporter.log('')
 })
 
 tman.suite('Suites and tests', function () {
@@ -27,11 +42,10 @@ tman.suite('Suites and tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    // log for new instance
-    t.rootSuite.log = childLog(this)
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -57,8 +71,7 @@ tman.suite('Suites and tests', function () {
     })
 
     if (supportES2015) require('./es2015/async-test')(t)
-
-    return t.run(collectResult)
+    return t.run()
   })
 
   tman.it('nested suites and tests', function () {
@@ -66,11 +79,10 @@ tman.suite('Suites and tests', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    // log for new instance
-    t.rootSuite.log = childLog(this)
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -158,7 +170,7 @@ tman.suite('Suites and tests', function () {
       assert.strictEqual(count++, 25)
     })
 
-    return t.run(collectResult)
+    return t.run()
   })
 
   tman.it('invalid suite and test', function () {
@@ -200,11 +212,10 @@ tman.suite('Hooks', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    // log for new instance
-    t.rootSuite.log = childLog(this)
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
     })
 
@@ -243,7 +254,7 @@ tman.suite('Hooks', function () {
       assert.strictEqual(count++, 9)
     })
 
-    return t.run(collectResult)
+    return t.run()
   })
 
   tman.it('work for nested suites and tests', function () {
@@ -251,11 +262,10 @@ tman.suite('Hooks', function () {
     var count = 0
     // new child instance for test
     var t = tman.createTman()
-    // log for new instance
-    t.rootSuite.log = childLog(this)
+    t.setReporter(CustomReporter, this)
 
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
       assert.strictEqual(count++, 0)
       assert.strictEqual(this, t.rootSuite)
     })
@@ -321,7 +331,7 @@ tman.suite('Hooks', function () {
       assert.strictEqual(count++, 17)
     })
 
-    return t.run(collectResult)
+    return t.run()
   })
 
   tman.it('invalid hooks', function () {
@@ -348,29 +358,13 @@ tman.suite('Hooks', function () {
     var ctx = this
     // new child instance for test
     var t = tman.createTman()
-    // log for new instance
-    t.rootSuite.log = childLog(this)
+    t.setReporter(CustomReporter, this)
     t.before(function () {
-      t.rootSuite.log(format.yellow('↓ ' + ctx.title + ':', true))
+      t.rootSuite.reporter.log(format.yellow('↓ ' + ctx.title + ':', true))
     })
 
     if (supportES2015) require('./es2015/async-hook')(t)
 
-    return t.run(collectResult)
+    return t.run()
   })
 })
-
-function childLog (ctx) {
-  return function () {
-    var args = slice.call(arguments)
-    args[0] = format.indent(ctx.depth) + args[0]
-    tman.rootSuite.log.apply(null, args)
-  }
-}
-
-function collectResult (err, res) {
-  if (err) throw err
-  tman.rootSuite.passed += res.passed
-  tman.rootSuite.ignored += res.ignored
-  tman.rootSuite.errors.push.apply(tman.rootSuite.errors, res.errors)
-}
