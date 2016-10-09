@@ -108,7 +108,7 @@ tman.suite('suite level 1-1', function () {
 })
 
 tman.it('test level 1-1', function * () {
-  assert.strictEqual(count++, 21)
+  assert.strictEqual(count++, 20) // will error
   yield thunk.delay(100)
 })
 

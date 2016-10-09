@@ -1222,7 +1222,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1264,19 +1264,19 @@ module.exports={
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
     "commander": "^2.9.0",
-    "glob": "^7.1.0",
+    "glob": "^7.1.1",
     "supports-color": "^3.1.2",
     "thunks": "^4.7.5"
   },
   "devDependencies": {
-    "babel-plugin-transform-async-to-generator": "^6.8.0",
-    "babel-polyfill": "^6.13.0",
-    "babel-preset-es2015": "^6.14.0",
-    "babel-register": "^6.14.0",
-    "coffee-script": "^1.11.0",
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-polyfill": "^6.16.0",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-register": "^6.16.3",
+    "coffee-script": "^1.11.1",
     "istanbul": "^0.4.5",
-    "standard": "^8.1.0",
-    "ts-node": "^1.3.0",
+    "standard": "^8.3.0",
+    "ts-node": "^1.4.1",
     "typescript": "^2.0.3"
   },
   "files": [
