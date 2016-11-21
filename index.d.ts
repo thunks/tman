@@ -141,7 +141,7 @@ interface Tman {
   exclude(pattern: string): void;
   mocha(): void;
   reset(): void;
-  setExit(boolean): void;
+  setExit(shouldExit: boolean): void;
   setReporter(reporter: tman.Reporter, options?: any): void;
   timeout(duration: number): void;
   tryRun(delay?: number): ThunkFunction;
@@ -176,7 +176,7 @@ declare namespace tman {
   export function exclude(pattern: string): void;
   export function mocha(): void;
   export function reset(): void;
-  export function setExit(boolean): void;
+  export function setExit(shouldExit: boolean): void;
   export function timeout(duration: number): void;
   export function tryRun(delay?: number): ThunkFunction;
   export function run(callback?: Callback): ThunkFunction;
