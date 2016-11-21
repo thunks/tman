@@ -1222,7 +1222,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1276,8 +1276,8 @@ module.exports={
     "coffee-script": "^1.11.1",
     "istanbul": "^0.4.5",
     "standard": "^8.5.0",
-    "ts-node": "^1.6.1",
-    "typescript": "^2.0.6"
+    "ts-node": "^1.7.0",
+    "typescript": "^2.0.10"
   },
   "files": [
     "README.md",
