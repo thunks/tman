@@ -17,28 +17,6 @@ interface ThunkFunction {
   (fn?: Callback): ThunkFunction;
 }
 
-interface GeneratorFunction extends Function {
-  (): Generator;
-}
-
-interface GeneratorFunctionConstructor {
-  new (...args: string[]): GeneratorFunction;
-  (...args: string[]): GeneratorFunction;
-  prototype: GeneratorFunction;
-}
-
-interface IteratorResult {
-  done: boolean;
-  value: any;
-}
-
-interface Generator {
-  constructor: GeneratorFunctionConstructor;
-  next(value?: any): IteratorResult;
-  throw(err?: Error): IteratorResult;
-  return(value?: any): IteratorResult;
-}
-
 interface AsyncFunction extends Function {
   (): PromiseLike;
 }
@@ -65,11 +43,9 @@ interface SuiteAction {
   (): void;
 }
 
-interface OtherTestAction {
-  (): ThunkLikeFunction | PromiseLike | GeneratorFunction | AsyncFunction | Generator | ToThunk | ToPromise | void;
-}
+type SuitDone = (error?: any) => any;
 
-type TestAction = ThunkLikeFunction | GeneratorFunction | AsyncFunction | OtherTestAction;
+type TestAction = (done: SuitDone) => any | PromiseLike;
 
 interface SuiteFn {
   (title: string, fn: SuiteAction): tman.Suite;
