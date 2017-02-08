@@ -607,9 +607,15 @@ function parseRegExp (str) {
 module.exports = Reporter
 module.exports.defaultReporter = Reporter
 
+var hasOwnProperty = Object.prototype.hasOwnProperty
+
 function Reporter (ctx) {
   this.ctx = ctx
   this.count = 0
+}
+
+Reporter.hasErrExpected = function (err) {
+  return hasOwnProperty.call(err, 'actual') && hasOwnProperty.call(err, 'expected')
 }
 
 Reporter.prototype.log = function () {
@@ -644,6 +650,10 @@ Reporter.prototype.onFinish = function (rootSuite) {
 
   rootSuite.errors.forEach(function (err) {
     this.log(err.order + ') ' + err.title + ':')
+    if (Reporter.hasErrExpected(err)) {
+      this.log('Expected:', err.expected)
+      this.log('Actual:', err.actual)
+    }
     this.log(err.stack ? err.stack : String(err))
   }, this)
   if (rootSuite.exit && process.exit) process.exit((rootSuite.errors.length || !rootSuite.passed) ? 1 : 0)
@@ -668,6 +678,8 @@ Reporter.prototype.onFinish = function (rootSuite) {
 // Test failed: 11 passed; 1 failed; 3 ignored. (608ms)
 //
 // 1) /test level 1-2:
+// Expected: 21
+// Actual: 22
 // AssertionError: 22 === 21
 //     at Test.fn (/Users/zensh/git/js/thunkjs/tman/example/nested.js:116:10)
 //     at Test.<anonymous> (/Users/zensh/git/js/thunkjs/tman/lib/core.js:557:37)
@@ -766,6 +778,10 @@ Browser.prototype.onFinish = function (rootSuite) {
   rootSuite.errors.forEach(function (err) {
     var errElement = createElement('div', 'tman-error')
     errElement.appendChild(createElement('h4', 'error', err.order + ') ' + err.title + ':'))
+    if (Reporter.hasErrExpected(err)) {
+      errElement.appendChild(createElement('p', 'error-stack', 'Expected: ' + JSON.stringify(err.expected)))
+      errElement.appendChild(createElement('p', 'error-stack', 'Actual: ' + JSON.stringify(err.actual)))
+    }
     var message = err.stack ? err.stack : String(err)
     message = message.replace(/^/gm, '<br/>').replace(/ /g, '&nbsp;').slice(5)
     errElement.appendChild(createElement('p', 'error-stack', message))
@@ -1222,7 +1238,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1265,19 +1281,19 @@ module.exports={
   "dependencies": {
     "commander": "^2.9.0",
     "glob": "^7.1.1",
-    "supports-color": "^3.1.2",
+    "supports-color": "^3.2.3",
     "thunks": "^4.7.5"
   },
   "devDependencies": {
-    "babel-plugin-transform-async-to-generator": "^6.16.0",
-    "babel-polyfill": "^6.16.0",
-    "babel-preset-es2015": "^6.18.0",
-    "babel-register": "^6.18.0",
-    "coffee-script": "^1.12.0",
+    "babel-plugin-transform-async-to-generator": "^6.22.0",
+    "babel-polyfill": "^6.22.0",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-register": "^6.22.0",
+    "coffee-script": "^1.12.3",
     "istanbul": "^0.4.5",
     "standard": "^8.6.0",
-    "ts-node": "^1.7.0",
-    "typescript": "^2.0.10"
+    "ts-node": "^2.0.0",
+    "typescript": "^2.1.5"
   },
   "files": [
     "README.md",

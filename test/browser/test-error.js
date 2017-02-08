@@ -2,7 +2,7 @@
 // **Github:** https://github.com/thunks/tman
 //
 // **License:** MIT
-/*global tman */
+/* global tman */
 
 var count = 0
 var assert = {
