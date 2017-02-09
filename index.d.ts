@@ -40,7 +40,7 @@ interface ToPromise {
 }
 
 interface SuiteAction {
-  (): void;
+  (done?: SuitDone): void;
 }
 
 type SuitDone = (error?: any) => any;
