@@ -21,6 +21,7 @@ function CustomReporter (ctx, childCtx) {
 util.inherits(CustomReporter, tman.Reporter.defaultReporter)
 CustomReporter.prototype.onFinish = function (res) {
   tman.rootSuite.passed += res.passed + res.errors.length + res.ignored
+  this.logError(res)
 }
 CustomReporter.prototype.log = function () {
   var args = slice.call(arguments)
@@ -73,6 +74,29 @@ tman.suite('Exclusive or inclusive tests', function () {
 
       t.it('test 2-2', function () {
         assert.strictEqual(count++, 2)
+      })
+
+      t.it('test 2-3', function () {
+        assert.deepEqual({
+          a: 1,
+          b: 2,
+          d: 5
+        }, {
+          a: 4,
+          b: 2,
+          c: 3
+        })
+      })
+
+      t.it('test 2-4', function () {
+        assert.deepEqual({
+          a: undefined,
+          b: 2,
+          c: 3
+        }, {
+          b: 2,
+          c: 3
+        })
       })
     })
 

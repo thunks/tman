@@ -9,9 +9,9 @@ import * as assert from 'assert'
 import * as tman from '../'
 import { tman as tman1, Suite, Test, Reporter, suite, it } from '../'
 
-// tman(function () {}) // should ok
-// tman(function (done) {}) // should error
-// tman('test', function () {}) // should ok
+tman(function () {}) // should ok
+tman(function (done) {}) // should error
+tman('test', function () {}) // should ok
 
 tman.suite('tman typings', () => {
   tman.it('tman', function () {
