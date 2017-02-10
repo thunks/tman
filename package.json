@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -14,7 +14,7 @@
   "scripts": {
     "test": "standard && bin/tman 'test/*.js'",
     "test-all": "make test",
-    "test-cov": "istanbul cover bin/_tman 'test/*.js'",
+    "test-cov": "standard && istanbul cover bin/_tman 'test/*.js'",
     "test-typings": "bin/tman -r ts-node/register test/typings.test.ts",
     "browser": "browserify lib/browser.js -s tman -o browser/tman.js"
   },
