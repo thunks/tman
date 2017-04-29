@@ -1207,7 +1207,7 @@ function inherits (Child, Parent) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.5'
+  thunks.VERSION = '4.7.6'
   thunks['default'] = thunks
   thunks.Scope = Scope
   thunks.thunk = thunks()
@@ -1269,20 +1269,20 @@ module.exports={
     "diff": "^3.2.0",
     "glob": "^7.1.1",
     "supports-color": "^3.2.3",
-    "thunks": "^4.7.5"
+    "thunks": "^4.7.6"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.39",
-    "@types/node": "^7.0.5",
-    "babel-plugin-transform-async-to-generator": "^6.22.0",
-    "babel-polyfill": "^6.22.0",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-register": "^6.22.0",
-    "coffee-script": "^1.12.3",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^7.0.14",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "coffee-script": "^1.12.5",
     "istanbul": "^0.4.5",
-    "standard": "^8.6.0",
-    "ts-node": "^2.0.0",
-    "typescript": "^2.1.5"
+    "standard": "^10.0.2",
+    "ts-node": "^3.0.2",
+    "typescript": "^2.3.2"
   },
   "files": [
     "README.md",
