@@ -858,14 +858,6 @@ function inherits (Child, Parent) {
       })
     }
 
-    thunk.digest = function () {
-      var args = slice(arguments)
-      return thunk.call(this, function (callback) {
-        console.warn('thunk.digest is deprecated.')
-        apply(null, callback, args)
-      })
-    }
-
     thunk.thunkify = function (fn) {
       var ctx = this === thunk ? null : this
       return function () {
@@ -1207,7 +1199,7 @@ function inherits (Child, Parent) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.7.6'
+  thunks.VERSION = '4.8.0'
   thunks['default'] = thunks
   thunks.Scope = Scope
   thunks.thunk = thunks()
@@ -1224,7 +1216,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.6.6",
+  "version": "1.6.8",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1257,7 +1249,7 @@ module.exports={
     "mocha"
   ],
   "engines": {
-    "node": ">=0.10"
+    "node": ">=0.12"
   },
   "license": "MIT",
   "bugs": {
@@ -1267,22 +1259,22 @@ module.exports={
   "dependencies": {
     "commander": "^2.9.0",
     "diff": "^3.2.0",
-    "glob": "^7.1.1",
+    "glob": "^7.1.2",
     "supports-color": "^3.2.3",
-    "thunks": "^4.7.6"
+    "thunks": "^4.8.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.14",
+    "@types/node": "^7.0.22",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-register": "^6.24.1",
-    "coffee-script": "^1.12.5",
+    "coffee-script": "^1.12.6",
     "istanbul": "^0.4.5",
     "standard": "^10.0.2",
-    "ts-node": "^3.0.2",
-    "typescript": "^2.3.2"
+    "ts-node": "^3.0.4",
+    "typescript": "^2.3.4"
   },
   "files": [
     "README.md",

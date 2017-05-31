@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "moduleResolution": "node",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "moduleResolution": "node"
   },
   "exclude": [
     "coverage",

@@ -528,7 +528,7 @@ Use `--require` option:
 
 ### License
 T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.
-Copyright &copy; 2016 thunks.
+Copyright &copy; 2016-2017 thunks.
 
 [npm-url]: https://npmjs.org/package/tman
 [npm-image]: http://img.shields.io/npm/v/tman.svg
