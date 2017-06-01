@@ -98,6 +98,18 @@ tman.suite('Exclusive or inclusive tests', function () {
           c: 3
         })
       })
+
+      t.it('test 2-5', function () {
+        assert.deepEqual({
+          toJSON: function () {
+            return {
+              a: 5
+            }
+          }
+        }, {
+          a: 5
+        })
+      })
     })
 
     t.it('test 1-3', function () {
