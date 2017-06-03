@@ -51,4 +51,10 @@ tman.it('Rx.Observable asynchronous test', function () {
   }))
 })
 
+tman.it('async/await style asynchronous test', async function () {
+  assert.strictEqual(count++, 10)
+  await new Promise(function (resolve) { setTimeout(resolve, 50) })
+  assert.strictEqual(count++, 11)
+})
+
 // tman.run()

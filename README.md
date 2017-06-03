@@ -104,6 +104,13 @@ tman.it('Rx.Observable asynchronous test', function () {
     setTimeout(resolve, 100)
   }))
 })
+
+// Node.js v8
+tman.it('async/await style asynchronous test', async function () {
+  assert.strictEqual(count++, 10)
+  await new Promise(function (resolve) { setTimeout(resolve, 50) })
+  assert.strictEqual(count++, 11)
+})
 ```
 
 Run by T-man CLI (need `npm i tman -g`):
