@@ -1,25 +1,23 @@
 'use strict'
 // Modified from https://github.com/mochajs/mocha
 
-var fs = require('fs')
+const fs = require('fs')
 
 module.exports = function () {
-  var optsPath = process.argv.indexOf('--opts') !== -1
+  let optsPath = process.argv.indexOf('--opts') !== -1
     ? process.argv[process.argv.indexOf('--opts') + 1] : 'test/tman.opts'
 
   try {
-    var opts = fs.readFileSync(optsPath, 'utf8')
+    let opts = fs.readFileSync(optsPath, 'utf8')
       .replace(/\\\s/g, '%20')
       .split(/\s/)
       .filter(Boolean)
-      .map(function (value) {
-        return value.replace(/%20/g, ' ')
-      })
+      .map((value) => value.replace(/%20/g, ' '))
 
     process.argv = process.argv
       .slice(0, 2)
       .concat(opts.concat(process.argv.slice(2)))
-  } catch (err) {}
+  } catch (_) {}
 
   process.env.LOADED_TMAN_OPTS = true
 }

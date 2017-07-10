@@ -4,13 +4,13 @@
 //
 // **License:** MIT
 
-var core = require('./core')
-var info = require('../package.json')
-var Reporter = require('./reporters/base')
+const core = require('./core')
+const info = require('../package.json')
+const Reporter = require('./reporters/base')
 require('./reporters/browser') // mount "browser" as default reporter
 
-var env = {}
-var tm = module.exports = tmanFactroy()
+const env = {}
+const tm = module.exports = tmanFactroy()
 tm.NAME = info.name
 tm.VERSION = info.version
 tm.Test = core.Test
@@ -22,7 +22,7 @@ tm.env = env
 tm.env.TEST = window.TEST
 
 function tmanFactroy () {
-  var tman = core.Tman(env)
+  const tman = core.Tman(env)
   tman.setReporter(Reporter.defaultReporter)
   return tman
 }
@@ -34,12 +34,12 @@ function tmanFactroy () {
 //
 // **License:** MIT
 
-var path = require('path')
-var thunks = require('thunks')
-var thunk = thunks()
+const path = require('path')
+const thunks = require('thunks')
+const thunk = thunks()
 // Save timer references to avoid other module (Sinon) interfering.
-var $setTimeout = setTimeout
-var $clearTimeout = clearTimeout
+const $setTimeout = setTimeout
+const $clearTimeout = clearTimeout
 
 function Suite (title, parent, mode) {
   this.title = title
@@ -89,9 +89,7 @@ Suite.prototype.inspect = function () {
     afterEach: this.afterEach.inspect(),
     duration: this.getDuration(),
     parent: this.parent && '<Suite: ' + this.parent.title + '>',
-    children: this.children.map(function (test) {
-      return '<' + test.constructor.name + ': ' + test.title + '>'
-    })
+    children: this.children.map((test) => '<' + test.constructor.name + ': ' + test.title + '>')
   }
 }
 
@@ -109,10 +107,10 @@ Suite.prototype.toJSON = function () {
 }
 
 Suite.prototype.addSuite = function (title, fn, mode) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
-  var suite = new Suite(title, ctx, mode)
+  let suite = new Suite(title, ctx, mode)
   if (mode === 'only' && !ctx.isSkip()) ctx.setOnly()
   ctx.children.push(suite)
   this.ctxMachine = suite
@@ -122,35 +120,35 @@ Suite.prototype.addSuite = function (title, fn, mode) {
 }
 
 Suite.prototype.addTest = function (title, fn, mode) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertStr(title, ctx)
   assertFn(fn, ctx)
-  var test = new Test(title, ctx, fn, mode)
+  let test = new Test(title, ctx, fn, mode)
   if (mode === 'only' && !ctx.isSkip()) ctx.setOnly()
   ctx.children.push(test)
   return test
 }
 
 Suite.prototype.addBefore = function (fn) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertFn(fn, ctx)
   ctx.before.add(fn)
 }
 
 Suite.prototype.addAfter = function (fn) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertFn(fn, ctx)
   ctx.after.add(fn)
 }
 
 Suite.prototype.addBeforeEach = function (fn) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertFn(fn, ctx)
   ctx.beforeEach.add(fn)
 }
 
 Suite.prototype.addAfterEach = function (fn) {
-  var ctx = this.ctxMachine
+  let ctx = this.ctxMachine
   assertFn(fn, ctx)
   ctx.afterEach.add(fn)
 }
@@ -189,8 +187,8 @@ Suite.prototype.fullTitle = function () {
 }
 
 Suite.prototype.toThunk = function () {
-  var ctx = this
-  var hasOnly = this.hasOnly()
+  let ctx = this
+  let hasOnly = this.hasOnly()
 
   return function (done) {
     /* istanbul ignore next */
@@ -199,7 +197,7 @@ Suite.prototype.toThunk = function () {
 
     ctx.root.reporter.onSuiteStart(ctx.toJSON())
     if (ctx.mode === 'skip') {
-      return thunk.seq(ctx.children.map(function (test) {
+      return thunk.seq(ctx.children.map((test) => {
         test.mode = 'skip'
         return test
       }))(function () {
@@ -224,11 +222,11 @@ Suite.prototype.toThunk = function () {
       done()
     }
 
-    var tasks = []
+    let tasks = []
     tasks.push(ctx.before)
-    ctx.children.forEach(function (test) {
+    ctx.children.forEach((test) => {
       if (test instanceof Test) {
-        var fullTitle = test.fullTitle()
+        let fullTitle = test.fullTitle()
         if (ctx.root.exclude.test(fullTitle) || !ctx.root.grep.test(fullTitle)) return
       }
       if (hasOnly && test.mode !== 'hasOnly' && !test.isOnly()) return
@@ -257,15 +255,13 @@ Hooks.prototype.add = function (fn) {
 Hooks.prototype.inspect = function () {
   return {
     title: this.title,
-    hooks: this.hooks.map(function (hook) {
-      return '<' + hook.constructor.name + '>'
-    })
+    hooks: this.hooks.map((hook) => '<' + hook.constructor.name + '>')
   }
 }
 
 // Mocha compatible mode
 Hooks.prototype.getParentHooks = function () {
-  var suite = this.parent
+  let suite = this.parent
   if (suite.parent && (this.title === 'beforeEach' || this.title === 'afterEach')) {
     return suite.parent[this.title]
   }
@@ -273,21 +269,19 @@ Hooks.prototype.getParentHooks = function () {
 }
 
 Hooks.prototype.toThunk = function () {
-  var ctx = this
-  var suite = ctx.parent
+  let ctx = this
+  let suite = ctx.parent
 
   return function (done) {
-    var hooks = ctx.hooks.map(function (hook) {
-      return toThunkableFn(hook, suite)
-    })
+    let hooks = ctx.hooks.map((hook) => toThunkableFn(hook, suite))
     // Mocha compatible mode
     if (suite.root.mocha) {
-      var parentHooks = ctx.getParentHooks()
+      let parentHooks = ctx.getParentHooks()
       if (parentHooks) hooks.unshift(parentHooks)
     }
 
     if (!hooks.length) return done()
-    var title = '"' + ctx.title + '" Hook'
+    let title = '"' + ctx.title + '" Hook'
     if (!suite.cleanHandle.called) {
       suite.cleanHandle.hookTitle = title
       suite.root.runnerMachine = suite.cleanHandle
@@ -363,7 +357,7 @@ Test.prototype.fullTitle = function () {
 }
 
 Test.prototype.toThunk = function () {
-  var ctx = this
+  const ctx = this
 
   return function (done) {
     /* istanbul ignore next */
@@ -402,7 +396,7 @@ Test.prototype.toThunk = function () {
       toThunkableFn(ctx.fn, ctx),
       function (callback) {
         thunk.delay()(function () {
-          var duration = ctx.getDuration()
+          let duration = ctx.getDuration()
           if (ctx.endTime || !duration) return
           ctx.timer = $setTimeout(function () {
             callback(new Error('timeout of ' + duration + 'ms exceeded.'))
@@ -416,8 +410,8 @@ Test.prototype.toThunk = function () {
 exports.Suite = Suite
 exports.Test = Test
 exports.Tman = function (env) {
-  var tm = _tman('')
-  var rootSuite = tm.rootSuite = new Suite('root', null, '')
+  const tm = _tman('')
+  const rootSuite = tm.rootSuite = new Suite('root', null, '')
   rootSuite.exit = true
   rootSuite.grep = /.*/
   rootSuite.exclude = /.{-1}/
@@ -432,7 +426,7 @@ exports.Tman = function (env) {
         fn = title
         title = 'T-man'
       }
-      var suite = rootSuite.addSuite(title, fn, mode)
+      const suite = rootSuite.addSuite(title, fn, mode)
       tm.tryRun(10)
       return suite
     }
@@ -528,7 +522,7 @@ exports.Tman = function (env) {
       running = false
       process.removeListener('uncaughtException', uncaught)
       endTest.called = true
-      var suite
+      let suite
       if (err == null) {
         suite = rootSuite.toJSON()
         suite.exit = rootSuite.exit
@@ -549,7 +543,7 @@ exports.Tman = function (env) {
     tm.uncaught = uncaught
     process.on('uncaughtException', uncaught)
     function uncaught (err) {
-      var uncaughtHandle = rootSuite.runnerMachine || endTest
+      let uncaughtHandle = rootSuite.runnerMachine || endTest
       err = err || new Error('uncaught exception')
       err.uncaught = true
       err.stack = err.stack
@@ -592,7 +586,7 @@ function toThunkableFn (fn, ctx) {
 // extract args if it's regex-like, i.e: [string, pattern, flag]
 function parseRegExp (str) {
   if (str instanceof RegExp) return str
-  var arg = String(str).match(/^\/(.*)\/(g|i|)$|.*/)
+  let arg = String(str).match(/^\/(.*)\/(g|i|)$|.*/)
   return new RegExp(arg[1] || arg[0], arg[2])
 }
 
@@ -629,23 +623,23 @@ Reporter.prototype.onTestStart = function (test) {}
 
 Reporter.prototype.onTestFinish = function (test) {
   if (test.state) {
-    var state = test.state === true ? 'pass' : 'fail'
+    let state = test.state === true ? 'pass' : 'fail'
     this.log(++this.count + '\t' + test.fullTitle + '\t' + state)
   }
 }
 
 Reporter.prototype.onFinish = function (rootSuite) {
-  var message = '\nTest ' + (rootSuite.errors.length ? 'failed: ' : 'finished: ')
+  let message = '\nTest ' + (rootSuite.errors.length ? 'failed: ' : 'finished: ')
   message += rootSuite.passed + ' passed; '
   message += rootSuite.errors.length + ' failed; '
   message += rootSuite.ignored + ' ignored.'
   message += ' (' + (rootSuite.endTime - rootSuite.startTime) + 'ms)\n'
   this.log(message)
 
-  rootSuite.errors.forEach(function (err) {
+  rootSuite.errors.forEach((err) => {
     this.log(err.order + ') ' + err.title + ':')
     this.log(err.stack ? err.stack : String(err))
-  }, this)
+  })
   if (rootSuite.exit && process.exit) process.exit((rootSuite.errors.length || !rootSuite.passed) ? 1 : 0)
 }
 
@@ -683,7 +677,7 @@ Reporter.prototype.onFinish = function (rootSuite) {
 //
 // **License:** MIT
 
-var Reporter = require('./base')
+const Reporter = require('./base')
 
 module.exports = Browser
 Reporter.defaultReporter = Browser
@@ -694,7 +688,7 @@ function Browser (ctx) {
 inherits(Browser, Reporter)
 
 Browser.prototype.onStart = function (suite) {
-  var rootElement = document.getElementById('tman')
+  let rootElement = document.getElementById('tman')
   if (!rootElement) {
     rootElement = createElement('div', 'tman')
     rootElement.setAttribute('id', 'tman')
@@ -706,8 +700,8 @@ Browser.prototype.onStart = function (suite) {
 
 Browser.prototype.onSuiteStart = function (suite) {
   if (this.ctx === suite.ctx) return // It is rootSuite
-  var title = '✢ ' + suite.title
-  var $element = suite.ctx.$element = createElement('div', 'tman-suite')
+  let title = '✢ ' + suite.title
+  let $element = suite.ctx.$element = createElement('div', 'tman-suite')
   $element.appendChild(createElement('h3', '', indent(suite.depth) + title))
   suite.ctx.parent.$element.appendChild($element)
 }
@@ -715,7 +709,7 @@ Browser.prototype.onSuiteStart = function (suite) {
 Browser.prototype.onSuiteFinish = function (suite) {
   if (suite.state instanceof Error) {
     suite.ctx.$element.setAttribute('class', 'tman-test error')
-    var $element = createElement('span', 'more-info',
+    let $element = createElement('span', 'more-info',
       indent(suite.depth + 1) + suite.state.title + ' ✗ (' + suite.state.order + ')')
     suite.ctx.$element.appendChild($element)
   }
@@ -727,15 +721,15 @@ Browser.prototype.onTestStart = function (test) {
 }
 
 Browser.prototype.onTestFinish = function (test) {
-  var message = ''
-  var className = 'tman-test '
+  let message = ''
+  let className = 'tman-test '
   if (test.state === null) {
     message += ' ‒'
     className += 'ignored'
   } else if (test.state === true) {
     message += ' ✓'
     className += 'success'
-    var time = test.endTime - test.startTime
+    let time = test.endTime - test.startTime
     if (time > 50) message += ' (' + time + 'ms)'
   } else {
     message += ' ✗ (' + test.state.order + ')'
@@ -748,10 +742,10 @@ Browser.prototype.onTestFinish = function (test) {
 }
 
 Browser.prototype.onFinish = function (rootSuite) {
-  var resultElement = createElement('div', 'tman-footer')
+  let resultElement = createElement('div', 'tman-footer')
   this.ctx.$element.appendChild(resultElement)
 
-  var statElement = createElement('div', 'tman-statistics')
+  let statElement = createElement('div', 'tman-statistics')
   statElement.appendChild(createElement('span',
     'info', 'Test ' + (rootSuite.errors.length ? 'failed: ' : 'finished: ')))
   statElement.appendChild(createElement('span',
@@ -765,10 +759,10 @@ Browser.prototype.onFinish = function (rootSuite) {
 
   resultElement.appendChild(statElement)
   /* istanbul ignore next */
-  rootSuite.errors.forEach(function (err) {
-    var errElement = createElement('div', 'tman-error')
+  rootSuite.errors.forEach((err) => {
+    let errElement = createElement('div', 'tman-error')
     errElement.appendChild(createElement('h4', 'error', err.order + ') ' + err.title + ':'))
-    var message = err.stack ? err.stack : String(err)
+    let message = err.stack ? err.stack : String(err)
     message = message.replace(/^/gm, '<br/>').replace(/ /g, '&nbsp;').slice(5)
     errElement.appendChild(createElement('p', 'error-stack', message))
     resultElement.appendChild(errElement)
@@ -776,8 +770,8 @@ Browser.prototype.onFinish = function (rootSuite) {
 }
 
 function indent (len) {
-  var ch = '&nbsp;&nbsp;'
-  var pad = ''
+  let ch = '&nbsp;&nbsp;'
+  let pad = ''
 
   while (len > 0) {
     if (len & 1) pad += ch
@@ -787,7 +781,7 @@ function indent (len) {
 }
 
 function createElement (tag, className, content) {
-  var el = document.createElement(tag)
+  let el = document.createElement(tag)
   if (className) el.setAttribute('class', className)
   if (content) el.innerHTML = content
   return el
@@ -1216,7 +1210,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.6.9",
+  "version": "1.7.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1249,7 +1243,7 @@ module.exports={
     "mocha"
   ],
   "engines": {
-    "node": ">=0.12"
+    "node": ">= 4.5.0"
   },
   "license": "MIT",
   "bugs": {
@@ -1257,15 +1251,15 @@ module.exports={
   },
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
-    "commander": "^2.9.0",
-    "diff": "^3.2.0",
-    "glob": "^7.1.2",
-    "supports-color": "^3.2.3",
-    "thunks": "^4.8.0"
+    "commander": "~2.11.0",
+    "diff": "~3.3.0",
+    "glob": "~7.1.2",
+    "supports-color": "~4.2.0",
+    "thunks": "~4.8.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^8.0.10",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
@@ -1273,8 +1267,8 @@ module.exports={
     "coffee-script": "^1.12.6",
     "istanbul": "^0.4.5",
     "standard": "^10.0.2",
-    "ts-node": "^3.0.4",
-    "typescript": "^2.3.4"
+    "ts-node": "^3.2.0",
+    "typescript": "^2.4.1"
   },
   "files": [
     "README.md",
