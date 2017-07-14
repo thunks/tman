@@ -286,6 +286,10 @@ tman.suite('Exclusive or inclusive tests', function () {
       t.it.skip('test 2-2-3', function () {
         assert.strictEqual(true, false)
       })
+
+      t.it('test 2-2-4', function () {
+        assert.notEqual('same string', 'same string')
+      })
     })
 
     t.suite.only('suite 1-3', function () {
