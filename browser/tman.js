@@ -27,7 +27,7 @@ function tmanFactroy () {
   return tman
 }
 
-},{"../package.json":6,"./core":2,"./reporters/base":3,"./reporters/browser":4}],2:[function(require,module,exports){
+},{"../package.json":7,"./core":2,"./reporters/base":3,"./reporters/browser":4}],2:[function(require,module,exports){
 (function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
@@ -591,7 +591,7 @@ function parseRegExp (str) {
 }
 
 }).call(this,require('_process'))
-},{"_process":8,"path":7,"thunks":5}],3:[function(require,module,exports){
+},{"_process":9,"path":8,"thunks":5}],3:[function(require,module,exports){
 (function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
@@ -671,7 +671,7 @@ Reporter.prototype.onFinish = function (rootSuite) {
 // ```
 
 }).call(this,require('_process'))
-},{"_process":8}],4:[function(require,module,exports){
+},{"_process":9}],4:[function(require,module,exports){
 'use strict'
 // **Github:** https://github.com/thunks/tman
 //
@@ -798,6 +798,14 @@ function inherits (Child, Parent) {
 }
 
 },{"./base":3}],5:[function(require,module,exports){
+'use strict'
+// **Github:** https://github.com/thunks/thunks
+//
+// **License:** MIT
+
+module.exports = require('./thunks.js')
+
+},{"./thunks.js":6}],6:[function(require,module,exports){
 // **Github:** https://github.com/thunks/thunks
 //
 // **License:** MIT
@@ -1207,10 +1215,10 @@ function inherits (Child, Parent) {
   return thunks
 }))
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1254,21 +1262,21 @@ module.exports={
     "commander": "~2.11.0",
     "diff": "~3.3.0",
     "glob": "~7.1.2",
-    "supports-color": "~4.2.0",
-    "thunks": "~4.8.0"
+    "supports-color": "~4.2.1",
+    "thunks": "~4.8.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.41",
-    "@types/node": "^8.0.12",
+    "@types/node": "^8.0.24",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-polyfill": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "babel-register": "^6.24.1",
-    "coffee-script": "^1.12.6",
+    "babel-register": "^6.26.0",
+    "coffee-script": "^1.12.7",
     "istanbul": "^0.4.5",
-    "standard": "^10.0.2",
-    "ts-node": "^3.2.0",
-    "typescript": "^2.4.1"
+    "standard": "^10.0.3",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.4.2"
   },
   "files": [
     "README.md",
@@ -1284,7 +1292,7 @@ module.exports={
   }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1512,7 +1520,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":8}],8:[function(require,module,exports){
+},{"_process":9}],9:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
