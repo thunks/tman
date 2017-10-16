@@ -27,7 +27,7 @@ function tmanFactroy () {
   return tman
 }
 
-},{"../package.json":7,"./core":2,"./reporters/base":3,"./reporters/browser":4}],2:[function(require,module,exports){
+},{"../package.json":6,"./core":2,"./reporters/base":3,"./reporters/browser":4}],2:[function(require,module,exports){
 (function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
@@ -591,7 +591,7 @@ function parseRegExp (str) {
 }
 
 }).call(this,require('_process'))
-},{"_process":9,"path":8,"thunks":5}],3:[function(require,module,exports){
+},{"_process":8,"path":7,"thunks":5}],3:[function(require,module,exports){
 (function (process){
 'use strict'
 // **Github:** https://github.com/thunks/tman
@@ -671,7 +671,7 @@ Reporter.prototype.onFinish = function (rootSuite) {
 // ```
 
 }).call(this,require('_process'))
-},{"_process":9}],4:[function(require,module,exports){
+},{"_process":8}],4:[function(require,module,exports){
 'use strict'
 // **Github:** https://github.com/thunks/tman
 //
@@ -798,14 +798,6 @@ function inherits (Child, Parent) {
 }
 
 },{"./base":3}],5:[function(require,module,exports){
-'use strict'
-// **Github:** https://github.com/thunks/thunks
-//
-// **License:** MIT
-
-module.exports = require('./thunks.js')
-
-},{"./thunks.js":6}],6:[function(require,module,exports){
 // **Github:** https://github.com/thunks/thunks
 //
 // **License:** MIT
@@ -814,6 +806,7 @@ module.exports = require('./thunks.js')
 ;(function (root, factory) {
   'use strict'
   /* istanbul ignore next */
+  if (typeof Promise !== 'function') throw new Error('Promise required')
   if (typeof module === 'object' && module.exports) module.exports = factory()
   else if (typeof define === 'function' && define.amd) define([], factory)
   else root.thunks = factory()
@@ -824,9 +817,7 @@ module.exports = require('./thunks.js')
   // Save timer references to avoid other module (Sinon) interfering.
   var $setTimeout = setTimeout
   /* istanbul ignore next */
-  var nextTick = typeof setImmediate === 'function'
-    ? setImmediate : typeof Promise === 'function'
-    ? function (fn) { Promise.resolve().then(fn) } : function (fn) { $setTimeout(fn, 0) }
+  var nextTick = typeof setImmediate === 'function' ? setImmediate : function (fn) { Promise.resolve().then(fn) }
 
   function thunks (options) {
     var scope = options instanceof Scope ? options : new Scope(options)
@@ -871,6 +862,17 @@ module.exports = require('./thunks.js')
       }
     }
 
+    thunk.promise = promise
+    function promise (thunkable) {
+      var ctx = this
+      return new Promise(function (resolve, reject) {
+        thunk.call(ctx, thunkable)(function (err, res) {
+          if (err == null) resolve(res)
+          else reject(err)
+        })
+      })
+    }
+
     thunk.lift = function (fn) {
       var ctx = this === thunk ? null : this
       return function () {
@@ -902,20 +904,11 @@ module.exports = require('./thunks.js')
     }
 
     thunk.persist = function (thunkable) {
-      var result
-      var queue = []
       var ctx = this === thunk ? null : this
-
-      thunk.call(ctx, thunkable)(function () {
-        result = slice(arguments)
-        while (queue.length) apply(null, queue.shift(), result)
-      })
+      var result = promise.call(ctx, thunkable)
 
       return function (callback) {
-        return thunk.call(ctx || this, function (done) {
-          if (result) apply(null, done, result)
-          else queue.push(done)
-        })(callback)
+        return thunk.call(ctx, result)(callback)
       }
     }
 
@@ -1201,11 +1194,13 @@ module.exports = require('./thunks.js')
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.8.0'
+  thunks.VERSION = '4.9.0'
   thunks['default'] = thunks
   thunks.Scope = Scope
   thunks.thunk = thunks()
+  thunks.promise = thunks.thunk.promise
   thunks.thunks = thunks
+  thunks.slice = slice
   thunks.pruneErrorStack = true
   thunks.isGeneratorFn = function (fn) { return isFunction(fn) && isGeneratorFn(fn) }
   thunks.isAsyncFn = function (fn) { return isFunction(fn) && isAsyncFn(fn) }
@@ -1215,10 +1210,10 @@ module.exports = require('./thunks.js')
   return thunks
 }))
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1260,14 +1255,14 @@ module.exports={
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
     "commander": "~2.11.0",
-    "diff": "~3.3.0",
+    "diff": "~3.4.0",
     "glob": "~7.1.2",
-    "supports-color": "~4.2.1",
-    "thunks": "~4.8.1"
+    "supports-color": "~4.4.0",
+    "thunks": "~4.9.0"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.41",
-    "@types/node": "^8.0.24",
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^8.0.34",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
@@ -1276,7 +1271,7 @@ module.exports={
     "istanbul": "^0.4.5",
     "standard": "^10.0.3",
     "ts-node": "^3.3.0",
-    "typescript": "^2.4.2"
+    "typescript": "^2.5.3"
   },
   "files": [
     "README.md",
@@ -1292,7 +1287,7 @@ module.exports={
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1520,7 +1515,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":9}],9:[function(require,module,exports){
+},{"_process":8}],8:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
