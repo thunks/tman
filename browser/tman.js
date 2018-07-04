@@ -828,8 +828,7 @@ function inherits (Child, Parent) {
     }
 
     function thunk (thunkable) {
-      return childThunk(new Link([null, thunkable], null),
-                        new Domain(this === thunk ? null : this))
+      return childThunk(new Link([null, thunkable], null), new Domain(this === thunk ? null : this))
     }
 
     thunk.all = function (obj) {
@@ -1194,7 +1193,7 @@ function inherits (Child, Parent) {
   }
 
   thunks.NAME = 'thunks'
-  thunks.VERSION = '4.9.0'
+  thunks.VERSION = '4.9.2'
   thunks['default'] = thunks
   thunks.Scope = Scope
   thunks.thunk = thunks()
@@ -1213,7 +1212,7 @@ function inherits (Child, Parent) {
 },{}],6:[function(require,module,exports){
 module.exports={
   "name": "tman",
-  "version": "1.7.4",
+  "version": "1.8.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -1254,24 +1253,24 @@ module.exports={
   },
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
-    "commander": "^2.12.2",
-    "diff": "~3.4.0",
+    "commander": "^2.16.0",
+    "diff": "~3.5.0",
     "glob": "~7.1.2",
-    "supports-color": "^5.1.0",
-    "thunks": "~4.9.0"
+    "supports-color": "^5.4.0",
+    "thunks": "~4.9.2"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.45",
-    "@types/node": "^8.5.2",
+    "@types/mocha": "^5.2.4",
+    "@types/node": "^10.5.1",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-register": "^6.26.0",
     "coffee-script": "^1.12.7",
     "istanbul": "^0.4.5",
-    "standard": "^10.0.3",
-    "ts-node": "^4.1.0",
-    "typescript": "^2.6.2"
+    "standard": "^11.0.1",
+    "ts-node": "^7.0.0",
+    "typescript": "^2.9.2"
   },
   "files": [
     "README.md",
