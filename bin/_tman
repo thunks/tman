@@ -33,6 +33,8 @@ program
   .option('-R, --reporter <name>', 'specify the reporter to use [spec]')
   .option('-t, --timeout <ms>', 'set test-case timeout in milliseconds [2000]')
   .option('--debug-brk', "enable node's debugger breaking on the first line")
+  .option('--inspect', "enable node's debugger breaking on the first line")
+  .option('--inspect-brk', "enable node's debugger breaking on the first line")
   .option('--es_staging', 'enable all staged features')
   .option('--globals <names>', 'allow the given comma-delimited global [names]')
   .option('--harmony<_classes,_generators,...>', 'all node --harmony* flags are available')
