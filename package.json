@@ -1,6 +1,6 @@
 {
   "name": "tman",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "T-man: Super test manager for JavaScript.",
   "authors": [
     "Yan Qing <admin@zensh.com>"
@@ -33,7 +33,7 @@
     "mocha"
   ],
   "engines": {
-    "node": ">= 4.5.0"
+    "node": ">= 6"
   },
   "license": "MIT",
   "bugs": {
@@ -41,24 +41,24 @@
   },
   "homepage": "https://github.com/thunks/tman",
   "dependencies": {
-    "commander": "^2.18.0",
-    "diff": "~3.5.0",
+    "commander": "^2.19.0",
+    "diff": "~4.0.1",
     "glob": "~7.1.3",
-    "supports-color": "^5.5.0",
-    "thunks": "~4.9.2"
+    "supports-color": "^6.1.0",
+    "thunks": "~4.9.4"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.11.3",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.10.4",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-register": "^6.26.0",
     "coffee-script": "^1.12.7",
     "istanbul": "^0.4.5",
-    "standard": "^11.0.1",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.1.1"
+    "standard": "^12.0.1",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3333"
   },
   "files": [
     "README.md",

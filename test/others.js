@@ -77,7 +77,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       })
 
       t.it('test 2-3', function () {
-        assert.deepEqual({
+        assert.deepStrictEqual({
           a: 1,
           b: 2,
           d: 5
@@ -89,7 +89,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       })
 
       t.it('test 2-4', function () {
-        assert.deepEqual({
+        assert.deepStrictEqual({
           a: undefined,
           b: 2,
           c: 3
@@ -100,7 +100,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       })
 
       t.it('test 2-5', function () {
-        assert.deepEqual({
+        assert.deepStrictEqual({
           toJSON: function () {
             return {
               a: 5
@@ -288,7 +288,7 @@ tman.suite('Exclusive or inclusive tests', function () {
       })
 
       t.it('test 2-2-4', function () {
-        assert.notEqual('same string', 'same string')
+        assert.notStrictEqual('same string', 'same string')
       })
     })
 

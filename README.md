@@ -11,47 +11,55 @@ T-man is a refactor version of [mocha](http://mochajs.org/), but more lightweigh
 
 Summary
 -------
-- [Examples](#examples)
-  - [Simple tests](#simple-tests)
-  - [Mocha style tests](#mocha-style-tests)
-  - [Es-next tests with babel](#es-next-tests-with-babel)
-  - [Tests in source code](#tests-in-source-code)
-  - [Practical tests](#practical-tests)
-  - [Complex tests](#complex-tests)
-- [Usage](#usage)
-  - [Use as CLI](#use-as-cli)
-  - [Use with npm](#use-with-npm)
-  - [Assertions](#assertions)
-  - [Suites and tests](#suites-and-tests)
-    - `tman.suite(title, fn)`, `tman.describe(title, fn)`
-    - `tman.test(title, fn)`, `tman.it(title, fn)`
-  - [Hooks](#hooks)
-    - `tman.before(fn)`
-    - `tman.after(fn)`
-    - `tman.beforeEach(fn)`
-    - `tman.afterEach(fn)`
-  - [Exclusive or inclusive tests](#exclusive-or-inclusive-tests)
-    - `tman.suite.only(title, fn)`
-    - `tman.it.only(title, fn)`
-    - `tman.suite.skip(title, fn)`
-    - `tman.it.skip(title, fn)`
-    - `tman.grep(pattern)`
-    - `tman.exclude(pattern)`
-  - [Timeouts](#timeouts)
-  - [Write tests in source code](#write-tests-in-source-code)
-    - `tman(title, fn)`
-    - `tman.only(title, fn)`
-    - `tman.skip(title, fn)`
-  - [Run tests](#run-tests)
-    - `tman.run([callback])`
-    - `tman.mocha()`
-    - [T-man CLI](#t-man-cli)
-    - [T-man Test mode](#t-man-test-mode)
-- [TypeScript Typings](#typescript-typings)
-- [Reporters](#reporters)
-- [FAQ](#faq)
-  - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
-- [License MIT](#license)
+- [T-man](#t-man)
+  - [Summary](#summary)
+  - [Examples](#examples)
+    - [Simple tests](#simple-tests)
+    - [Mocha style tests](#mocha-style-tests)
+    - [Es-next tests with babel](#es-next-tests-with-babel)
+    - [Tests in source code](#tests-in-source-code)
+    - [Practical tests](#practical-tests)
+    - [Complex tests](#complex-tests)
+  - [Usage](#usage)
+    - [Use as CLI](#use-as-cli)
+    - [Use with npm package.json](#use-with-npm-packagejson)
+    - [Assertions](#assertions)
+    - [Suites and tests](#suites-and-tests)
+      - [tman.suite(title, fn), tman.describe(title, fn)](#tmansuitetitle-fn-tmandescribetitle-fn)
+      - [tman.test(title, fn), tman.it(title, fn)](#tmantesttitle-fn-tmanittitle-fn)
+    - [Hooks](#hooks)
+      - [tman.before(fn)](#tmanbeforefn)
+      - [tman.after(fn)](#tmanafterfn)
+      - [tman.beforeEach(fn)](#tmanbeforeeachfn)
+      - [tman.afterEach(fn)](#tmanaftereachfn)
+    - [Exclusive or inclusive tests](#exclusive-or-inclusive-tests)
+      - [tman.suite.only(title, fn)](#tmansuiteonlytitle-fn)
+      - [tman.it.only(title, fn)](#tmanitonlytitle-fn)
+      - [tman.suite.skip(title, fn)](#tmansuiteskiptitle-fn)
+      - [tman.it.skip(title, fn)](#tmanitskiptitle-fn)
+      - [tman.grep(pattern)](#tmangreppattern)
+      - [tman.exclude(pattern)](#tmanexcludepattern)
+    - [Timeouts](#timeouts)
+    - [Write tests in source code](#write-tests-in-source-code)
+      - [tman(title, fn)](#tmantitle-fn)
+      - [tman.only(title, fn)](#tmanonlytitle-fn)
+      - [tman.skip(title, fn)](#tmanskiptitle-fn)
+    - [Run tests](#run-tests)
+      - [tman.run([callback])](#tmanruncallback)
+      - [tman.mocha()](#tmanmocha)
+      - [tman.reset()](#tmanreset)
+      - [tman.loadFiles(filePath, sort)](#tmanloadfilesfilepath-sort)
+      - [tman.globals(globals)](#tmanglobalsglobals)
+      - [T-man CLI](#t-man-cli)
+      - [T-man test mode](#t-man-test-mode)
+    - [TypeScript Typings](#typescript-typings)
+    - [Reporters](#reporters)
+      - [spec](#spec)
+      - [dot](#dot)
+      - [base](#base)
+    - [FAQ](#faq)
+    - [How to run CoffeeScript (or TypeScript) tests?](#how-to-run-coffeescript-or-typescript-tests)
+    - [License](#license)
 
 ## Examples
 
@@ -535,7 +543,7 @@ Use `--require` option:
 
 ### License
 T-man is licensed under the [MIT](https://github.com/thunks/tman/blob/master/LICENSE) license.
-Copyright &copy; 2016-2017 thunks.
+Copyright &copy; 2016-2019 thunks.
 
 [npm-url]: https://npmjs.org/package/tman
 [npm-image]: http://img.shields.io/npm/v/tman.svg
