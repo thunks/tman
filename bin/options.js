@@ -4,11 +4,11 @@
 const fs = require('fs')
 
 module.exports = function () {
-  let optsPath = process.argv.indexOf('--opts') !== -1
+  const optsPath = process.argv.indexOf('--opts') !== -1
     ? process.argv[process.argv.indexOf('--opts') + 1] : 'test/tman.opts'
 
   try {
-    let opts = fs.readFileSync(optsPath, 'utf8')
+    const opts = fs.readFileSync(optsPath, 'utf8')
       .replace(/\\\s/g, '%20')
       .split(/\s/)
       .filter(Boolean)
